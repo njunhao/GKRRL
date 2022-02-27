@@ -1,0 +1,31 @@
+non-fluents nf_husky_inspection_inst_mdp__d1_14 {
+    domain = husky_inspection_mdp;
+
+    objects {
+        robot : {r1};
+        waypoint : {wp0, wp1, wp2};
+        obj : {poi_valve1};
+    };
+
+    non-fluents {
+        // TASK_REWARD = 10;
+
+        BASE(wp0);
+        VALVE_AT(poi_valve1);
+
+        POI_AT(poi_valve1, wp0);
+
+        GOAL_VALVE_TURNED(poi_valve1);
+    };
+}
+
+instance husky_inspection_inst_mdp__d1_14 {
+    domain = husky_inspection_mdp;
+    non-fluents = nf_husky_inspection_inst_mdp__d1_14;
+    init-state {
+        robot_at(r1, wp1);
+    };
+    max-nondef-actions = 1;
+    horizon = 20;
+    discount = 1.00;
+}

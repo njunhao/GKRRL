@@ -1,0 +1,60 @@
+non-fluents nf_recon2_inst_mdp__0e {
+    domain = recon2_mdp; 
+    objects { 
+        // pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9, wp10};
+        pos : {wp1, wp2, wp3};
+        obj : {o0,o1,o2};
+        agent : {a1};
+        // tool : {l1,w1,p1};
+        tool : {p1};
+    }; 
+    non-fluents {
+        ADJACENT(wp1, wp2);
+        ADJACENT(wp2, wp3);
+        // ADJACENT(wp3, wp4);
+        // ADJACENT(wp4, wp5);
+        // ADJACENT(wp5, wp6);
+        // ADJACENT(wp6, wp7);
+        // ADJACENT(wp7, wp8);
+        // ADJACENT(wp8, wp9);
+        // ADJACENT(wp9, wp10);
+        
+        ADJACENT(wp2, wp1);
+        ADJACENT(wp3, wp2);
+        // ADJACENT(wp4, wp3);
+        // ADJACENT(wp5, wp4);
+        // ADJACENT(wp6, wp5);
+        // ADJACENT(wp7, wp6);
+        // ADJACENT(wp8, wp7);
+        // ADJACENT(wp9, wp8);
+        // ADJACENT(wp10, wp9);
+
+        // WATER_TOOL(w1);
+        // LIFE_TOOL(l1);
+        CAMERA_TOOL(p1);
+        BASE(wp2);
+        OBJECT_AT(o0,wp1);
+        OBJECT_AT(o1,wp1);
+        OBJECT_AT(o2,wp3);
+        // HAZARD(wp1);
+        // DAMAGE_PROB(w1) = 0.0;
+        // DAMAGE_PROB(l1) = 0.0;
+        // GOOD_PIC_WEIGHT = 0.7597893;
+        // BAD_PIC_WEIGHT = 0.33286658;
+        // COST = 0;
+    };
+}
+instance recon2_inst_mdp__0e { 
+    domain = recon2_mdp; 
+     non-fluents = nf_recon2_inst_mdp__0e;
+    init-state { 
+        agentAt(a1,wp2);
+        lifeDetected(o0);
+        lifeDetected(o1);
+        lifeDetected(o2);
+    };
+    max-nondef-actions = 1;
+    horizon = 10;
+    discount = 1.0;
+} 
+

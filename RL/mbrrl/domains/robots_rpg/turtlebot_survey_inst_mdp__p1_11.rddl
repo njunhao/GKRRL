@@ -1,0 +1,47 @@
+non-fluents nf_turtlebot_survey_inst_mdp__p1_11 {
+    domain = turtlebot_survey_mdp;
+    objects {
+        robot: {r1};
+        waypoint: {wp0, wp1, wp2, wp3};
+        obj: {o1, o2};
+    };
+    
+    non-fluents {
+        // COST_MOVE = -1.0;
+        // COST_LOCALISE = -1.0;
+        // COST_DOCK = -1.0;
+        // COST_UNDOCK = -1.0;
+        // COST_SURVEY = -1.0;
+        // COST_INSPECTION = -1.0;
+        // COST_TRANSMIT = -1.0;
+        // COST_CALIBRATE = -1.0;
+
+        PROB_LOSING_LOCALISATION = 0.0;
+        PROB_POOR_CALIBRATION = 0.15;
+        PROB_LOW_ENERGY = 0.0;
+        PROB_SUCCESSFUL_SURVEY = 1.0;
+        PROB_SUCCESSFUL_OBSERVATION = 1.0;
+        PROB_SUCCESSFUL_SURVEY_DAMAGED = 0.2;
+        PROB_SUCCESSFUL_OBSERVATION_DAMAGED = 0.9;
+
+        DOCK_AT(wp0);
+        COMM_TOWER(wp3);
+        OBJECT_AT(o1, wp0);
+        OBJECT_AT(o2, wp1);
+    };
+}
+
+instance turtlebot_survey_inst_mdp__p1_11 {
+    domain = turtlebot_survey_mdp;
+    non-fluents = nf_turtlebot_survey_inst_mdp__p1_11;
+    init-state {
+        robot_at(r1, wp0);
+        docked(r1);
+        has_energy(r1);
+        camera_calibrated(r1);
+    };
+
+    max-nondef-actions = 1;
+    horizon  = 30;
+    discount = 1.0;
+}

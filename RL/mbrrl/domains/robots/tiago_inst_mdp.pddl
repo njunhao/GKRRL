@@ -1,0 +1,16 @@
+(define (problem task)
+(:domain tiago_mdp)
+(:objects wp0 wp1 wp2 - waypoint r1 - robot p1 - person o1 o2 - obj)
+(:init
+    (robot_at r1 wp0)
+    (person_at p1 wp4)
+    (object_at o1 wp1)
+    (object_at o2 wp2)
+    (emptyhand r1)
+)
+(:goal (and
+    (reward_received p1)
+))
+  ;(:goal-reward 1)
+  ;(:metric maximize (reward))
+)

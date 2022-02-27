@@ -1,0 +1,34 @@
+non-fluents nf_tiago_hri_inst_mdp__1_4 {
+    domain = tiago_hri_mdp;
+    objects {
+        obj : {o1, o2, o3};
+        person : {p1};
+        robot : {r1};
+        waypoint : {wp0, wp1, wp2, wp3, wp4};
+    };
+    non-fluents {
+        PROB_LOSING_LOCALISATION = 0.05;
+        PROB_NEED_ASSISTANCE(p1) = 0.5;
+        TABLE_AT(wp1);
+        TABLE_AT(wp2);
+        TABLE_AT(wp3);
+        PERSON_GOAL_OBJECT_AT(p1, o1, wp2);
+        PERSON_GOAL_OBJECT_WITH(p1, o3, p1);
+        PERSON_IS_AT(p1, wp4);
+    };
+}
+
+instance tiago_hri_inst_mdp__1_4 {
+    domain = tiago_hri_mdp;
+    non-fluents = nf_tiago_hri_inst_mdp__1_4;
+    init-state {
+        robot_at(r1, wp0);
+        emptyhand(r1);
+        object_at(o1, wp1);
+        object_at(o2, wp2);
+        object_at(o3, wp3);
+    };
+    max-nondef-actions = 1;
+    horizon = 20;
+    discount = 1.0;
+}

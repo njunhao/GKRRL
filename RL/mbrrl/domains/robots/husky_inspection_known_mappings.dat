@@ -1,0 +1,7 @@
+robot_at :- move
+localised :- localise; move
+poi_found :- locate_poi
+poi_inspected :- inspect_poi
+poi_image_taken :- take_image
+poi_valve_turned :- manipulate_valve
+damaged_manipulator :- manipulate_valve

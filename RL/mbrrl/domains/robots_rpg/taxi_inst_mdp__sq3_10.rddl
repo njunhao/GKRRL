@@ -1,0 +1,54 @@
+non-fluents nf_taxi_inst_mdp__sq3_10 {
+    domain = taxi_mdp;
+    objects {
+        taxi : {t1};
+        pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9};
+        passenger : {p0};
+    };
+    
+    non-fluents {
+        // ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp4);
+        ADJACENT(wp2, wp3);
+        ADJACENT(wp2, wp5);
+        ADJACENT(wp3, wp6);
+        ADJACENT(wp4, wp5);
+        ADJACENT(wp4, wp7);
+        ADJACENT(wp5, wp6);
+        ADJACENT(wp5, wp8);
+        ADJACENT(wp6, wp9);
+        ADJACENT(wp7, wp8);
+        ADJACENT(wp8, wp9);
+
+        // ADJACENT(wp2, wp1);
+        ADJACENT(wp4, wp1);
+        ADJACENT(wp3, wp2);
+        ADJACENT(wp5, wp2);
+        ADJACENT(wp6, wp3);
+        ADJACENT(wp5, wp4);
+        ADJACENT(wp7, wp4);
+        ADJACENT(wp6, wp5);
+        ADJACENT(wp8, wp5);
+        ADJACENT(wp9, wp6);
+        ADJACENT(wp8, wp7);
+        ADJACENT(wp9, wp8);
+
+        DESTINATION(p0, wp9);
+        // TAXI_STAND(wp1);
+        // TAXI_STAND(wp3);
+        // TAXI_STAND(wp7);
+        // TAXI_STAND(wp9);
+    };
+}
+
+instance taxi_inst_mdp__sq3_10 {
+    domain = taxi_mdp;
+    non-fluents = nf_taxi_inst_mdp__sq3_10;
+    init-state {
+        passenger_at(p0, wp3);
+        taxi_at(t1, wp9);
+    };
+    max-nondef-actions = 1;
+    horizon  = 20;
+    discount = 1.0;
+}

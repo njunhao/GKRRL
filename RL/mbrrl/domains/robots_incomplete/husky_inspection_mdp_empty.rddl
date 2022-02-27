@@ -1,0 +1,102 @@
+domain husky_inspection_mdp {
+    types {
+        robot : object;
+        waypoint : object;
+        obj : object;
+    };
+
+    pvariables {
+        TASK_REWARD: {non-fluent, real, default = 10.0};
+        COST_MOVE(robot, waypoint, waypoint): {non-fluent, real, default = -1.0};
+        COST_LOCALISE(robot): {non-fluent, real, default = -1.0};
+        COST_LOCATE_POI(robot): {non-fluent, real, default = -1.0};
+        COST_INSPECT_POI(robot): {non-fluent, real, default = -1.0};
+        COST_TAKE_IMAGE(robot): {non-fluent, real, default = -1.0};
+        COST_MANIPULATE_VALVE(robot): {non-fluent, real, default = -1.0};
+        COST_REPAIR_CAMERA(robot): {non-fluent, real, default = -1.0};
+        COST_REPAIR_MANIPULATOR(robot): {non-fluent, real, default = -1.0};
+
+        PROB_LOCALISED(robot) : {non-fluent, real, default = 1.0};
+        PROB_FOUND_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_FOUND(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_INSPECTED_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_INSPECTED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_IMAGE_TAKEN_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_IMAGE_TAKEN(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_VALVE_TURNED_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_VALVE_TURNED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_DAMAGED_MANIPULATOR(robot) : {non-fluent, real, default = 0.0};
+        PROB_DAMAGED_CAMERA(robot) : {non-fluent, real, default = 0.0};
+
+        GOAL_POI_INSPECTED(obj): {non-fluent, bool, default = false};
+        GOAL_VALVE_TURNED(obj): {non-fluent, bool, default = false};
+        GOAL_POI_IMAGE_TAKEN(obj): {non-fluent, bool, default = false};
+        // close_to(waypoint, waypoint) : {non-fluent, bool, default = false};
+        POI_AT(obj, waypoint) : {non-fluent, bool, default = false};
+        BASE(waypoint) : {non-fluent, bool, default = false};
+        VALVE_AT(obj) : {non-fluent, bool, default = false};
+        
+        robot_at(robot, waypoint) : {state-fluent, bool, default = false};
+        localised(robot) : {state-fluent, bool, default = false};
+        poi_found(robot, obj) : {state-fluent, bool, default = false};
+        poi_inspected(robot, obj) : {state-fluent, bool, default = false};
+        poi_image_taken(robot, obj) : {state-fluent, bool, default = false};
+        poi_valve_turned(robot, obj) : {state-fluent, bool, default = false};
+        damaged_manipulator(robot) : {state-fluent, bool, default = false};
+        damaged_camera(robot) : {state-fluent, bool, default = false};
+        reward_received_for_inspection(obj): {state-fluent, bool, default = false};
+        reward_received_for_manipulation(obj): {state-fluent, bool, default = false};
+        reward_received_for_image_taken(obj): {state-fluent, bool, default = false};
+
+        move(robot, waypoint, waypoint) : {action-fluent, bool, default = false};
+        localise(robot) : {action-fluent, bool, default = false};
+        locate_poi(robot, obj) : {action-fluent, bool, default = false};
+        inspect_poi(robot, obj) : {action-fluent, bool, default = false};
+        take_image(robot, obj) : {action-fluent, bool, default = false};
+        manipulate_valve(robot, obj) : {action-fluent, bool, default = false};
+        repair_manipulator(robot) : {action-fluent, bool, default = false};
+        repair_camera(robot) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+        robot_at'(?r, ?loc) = robot_at(?r, ?loc);
+
+        localised'(?r) = localised(?r);
+
+        poi_found'(?r, ?poi) = poi_found(?r, ?poi);
+
+        poi_inspected'(?r, ?poi) = poi_inspected(?r, ?poi);
+
+        poi_image_taken'(?r, ?poi) = poi_image_taken(?r, ?poi);
+
+        poi_valve_turned'(?r, ?poi) = poi_valve_turned(?r, ?poi);
+
+        damaged_manipulator'(?r) = damaged_manipulator(?r);
+
+        damaged_camera'(?r) = damaged_camera(?r);
+
+        reward_received_for_inspection'(?poi) =
+                if (exists_{?r: robot, ?loc: waypoint} [(GOAL_POI_INSPECTED(?poi) ^ poi_inspected(?r, ?poi))]) then true
+                else reward_received_for_inspection(?poi);
+        
+        reward_received_for_manipulation'(?poi) =
+                if (exists_{?r: robot, ?loc: waypoint} [(GOAL_VALVE_TURNED(?poi) ^ poi_valve_turned(?r, ?poi))]) then true
+                else reward_received_for_manipulation(?poi);
+        
+        reward_received_for_image_taken'(?poi) =
+                if (exists_{?r: robot, ?loc: waypoint} [(GOAL_POI_IMAGE_TAKEN(?poi) ^ poi_image_taken(?r, ?poi))]) then true
+                else reward_received_for_image_taken(?poi);
+    };
+
+    reward = [sum_{?r: robot, ?loc1: waypoint, ?loc2: waypoint} [COST_MOVE(?r, ?loc1, ?loc2) * move(?r, ?loc1, ?loc2)]] +                                      // not bi-directional
+            [sum_{?r: robot} [COST_LOCALISE(?r) * localise(?r)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_LOCATE_POI(?r) * locate_poi(?r, ?poi)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_INSPECT_POI(?r) * inspect_poi(?r, ?poi)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_TAKE_IMAGE(?r) * take_image(?r, ?poi)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_MANIPULATE_VALVE(?r) * manipulate_valve(?r, ?poi)]] +
+            [sum_{?r: robot} [COST_REPAIR_MANIPULATOR(?r) * repair_manipulator(?r)]] +
+            [sum_{?r: robot} [COST_REPAIR_CAMERA(?r) * repair_camera(?r)]] +
+            TASK_REWARD * [sum_{?r: robot, ?poi: obj} [~reward_received_for_inspection(?poi) ^ GOAL_POI_INSPECTED(?poi) ^ poi_inspected(?r, ?poi)]] +             // cannot give reward for action as action may fail!
+            TASK_REWARD * [sum_{?r: robot, ?poi: obj} [~reward_received_for_manipulation(?poi) ^ GOAL_VALVE_TURNED(?poi) ^ poi_valve_turned(?r, ?poi)]] +
+            TASK_REWARD * [sum_{?r: robot, ?poi: obj} [~reward_received_for_image_taken(?poi) ^ GOAL_POI_IMAGE_TAKEN(?poi) ^ poi_image_taken(?r, ?poi)]];
+}

@@ -1,0 +1,10 @@
+robot_at :- move
+localised :- localise; move
+emptyhand :- pick_up; put_down
+holding :- pick_up; put_down
+object_at :- pick_up; put_down
+object_with :- give, take
+goal_object_at :- talk_to_person
+goal_object_with :- talk_to_person
+person_at :- find_person
+needed_assistance :- talk_to_person

@@ -1,0 +1,76 @@
+domain taxi_mdp {
+    
+    types {
+        taxi: object;
+        pos: object;
+        passenger: object;
+    };
+
+    pvariables {
+        // Action costs and penalties
+        TASK_REWARD : {non-fluent, real, default = 20.0};
+        PENALTY : {non-fluent, real, default = -10.0};
+        COST: {non-fluent, real, default = -1.0};
+
+        // Non-fluents        
+        //connecting up the locations
+        ADJACENT(pos, pos): { non-fluent, bool, default = false };
+        // TAXI_STAND(pos): { non-fluent, bool, default = false };
+        DESTINATION(passenger, pos) : {non-fluent, bool, default = false};
+
+        // State fluents
+        taxi_at(taxi, pos): {state-fluent, bool, default = false};
+        carrying(taxi, passenger): {state-fluent, bool, default = false};
+        passenger_at(passenger, pos): {state-fluent, bool, default = false};
+        passenger_alighted(passenger): {state-fluent, bool, default = false};
+
+        // Action fluents
+        move(taxi, pos): {action-fluent, bool, default = false};
+        pick_up(taxi, passenger) : {action-fluent, bool, default = false};
+        put_down(taxi, passenger) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+        taxi_at'(?t, ?loc) = 
+                if (move(?t, ?loc)) then true 
+                else if (exists_{?loc1 : pos} (move(?t, ?loc1))) then false
+                else taxi_at(?t, ?loc);
+
+        carrying'(?t, ?p) =
+                if (exists_{?loc: pos, ?p1: passenger} [pick_up(?t, ?p) ^ taxi_at(?t, ?loc) ^ passenger_at(?p, ?loc) ^ ~passenger_alighted(?p) ^ ~carrying(?t, ?p1)]) then true
+                else if (put_down(?t, ?p)) then false
+                else carrying(?t, ?p);
+
+        passenger_at'(?p, ?loc) =
+                if (exists_{?t: taxi, ?p1: passenger} [pick_up(?t, ?p) ^ taxi_at(?t, ?loc) ^ passenger_at(?p, ?loc) ^ ~passenger_alighted(?p) ^ ~carrying(?t, ?p1)]) then false
+                else if (exists_{?t: taxi} [put_down(?t, ?p) ^ taxi_at(?t, ?loc)]) then true
+                else passenger_at(?p, ?loc);
+
+        passenger_alighted'(?p) =
+                if (exists_{?t: taxi, ?loc: pos} [put_down(?t, ?p)]) then true
+                else passenger_alighted(?p);
+    };
+
+    // Define cost for every action so that PROST can consider noop() cost as zero
+    reward = [sum_{?t: taxi, ?loc: pos} [COST * move(?t, ?loc)]] +
+             [sum_{?t: taxi, ?p: passenger, ?loc: pos} [COST * (pick_up(?t, ?p) ^ taxi_at(?t, ?loc) ^ passenger_at(?p, ?loc) ^ ~passenger_alighted(?p) ^ (exists_{?p1: passenger} [~carrying(?t, ?p1)])) ]] +
+             [sum_{?t: taxi, ?p: passenger, ?loc: pos} [PENALTY * (pick_up(?t, ?p) ^ taxi_at(?t, ?loc) ^ (~passenger_at(?p, ?loc) | passenger_alighted(?p) | (exists_{?p1: passenger} [carrying(?t, ?p1)])  )) ]] +
+             [sum_{?t: taxi, ?p: passenger, ?loc: pos} [TASK_REWARD * (put_down(?t, ?p) ^ taxi_at(?t, ?loc) ^ DESTINATION(?p, ?loc)) ]] +
+             [sum_{?t: taxi, ?p: passenger, ?loc: pos} [PENALTY * (put_down(?t, ?p) ^ taxi_at(?t, ?loc) ^ ~DESTINATION(?p, ?loc)) ]];
+
+    action-preconditions {
+        forall_{?t: taxi, ?to: pos} [move(?t, ?to) => exists_{?from : pos} [(taxi_at(?t, ?from) ^ (ADJACENT(?from, ?to) | ADJACENT(?to, ?from)))]];
+        
+        // A taxi can not move to its current position
+        // forall_{?t: taxi, ?from: pos, ?to: pos} [move(?t, ?from, ?to) => (?from ~= ?to)];
+    
+        // A taxi can not be in two places at the same time
+        forall_{?t: taxi, ?loc1: pos, ?loc2: pos} [?loc1 == ?loc2 | (taxi_at(?t, ?loc1) => ~taxi_at(?t, ?loc2))];
+        
+        // All destinations must be taxi stand
+        // forall_{?p: passenger, ?loc: pos} [DESTINATION(?p, ?loc) => TAXI_STAND(?loc)];
+
+        // forall_{?t: taxi, ?p: passenger} [pick_up(?t, ?p) => exists_{?loc: pos, ?p1: passenger} [ (taxi_at(?t, ?loc) ^ passenger_at(?p, ?loc) ^ ~passenger_alighted(?p) ^ ~carrying(?t, ?p1)) ]];
+        forall_{?t: taxi, ?p: passenger} [put_down(?t, ?p) => carrying(?t, ?p)];
+    };
+}

@@ -1,0 +1,3 @@
+turtlebot_empty_domain.rddl has to be placed in a different folder from the ground truth .rddl as it should not be loaded to rddlsim else there is a conflict in the domain name with the ground truth .rddl
+
+domain_template.pddl and problem_template.pddl are dummy files to give to LFIT so that it can know what predicates are available in the domain, else it will not know these predicates exist even if they appear in the transitions training set.

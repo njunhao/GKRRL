@@ -1,0 +1,2 @@
+$ cd /media/alvin/HDD/Academics/PhD/Coding/Planners/rddlsim
+$ ./run rddl.translate.RDDL2Format /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/domains/robots /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/domains/robots_ppddl ppddl

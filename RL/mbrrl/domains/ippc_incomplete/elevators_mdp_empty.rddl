@@ -1,0 +1,117 @@
+////////////////////////////////////////////////////////////////////
+// Elevator Domain
+//
+// Author: Tom Walsh (thomasjwalsh [at] gmail.com)
+//
+// Edited for competition and translation purposes by Scott Sanner.
+//
+// State action constraints added by Thomas Keller 
+// (tkeller [at] informatik.uni-freiburg.de)
+//
+// The "elevators" domain has a number of elevators delivering passengers 
+// to either the top or the bottom floor (the only allowable destinations).
+// Potential passengers arrive at a floor based on Bernoulli draws 
+// with a potentially different arrival probability for each floor.  
+//
+// The elevator can move in its current direction if the doors are closed,
+// can remain stationary (noop), or can open its door while indicating
+// the direction that it will go in next (this allows potential passengers
+// to determine whether to board or not).  Note that the elevator can only
+// change direction by opening its door while indicating the opposite 
+// direction. 
+//
+// A passable plan in this domain is to pick up a passenger every time 
+// they appear and take them to their destination.  A better plan includes 
+// having the elevator "hover" near floors where passengers are likely to 
+// arrive and coordinating multiple elevators for up and down passengers.
+//
+// This domain was designed to support extension to multiple elevators
+// and may be used in either single or multi-elevator mode.
+////////////////////////////////////////////////////////////////////
+
+domain elevators_mdp {
+	
+	requirements = { 
+		constrained-state,
+		reward-deterministic
+	};
+	
+	types {
+  		elevator : object;
+ 	  	floor    : object;
+	}; 
+	
+	pvariables { 
+	
+		// Probability someone arrives at the floor (up or down)
+		ARRIVE-PARAM(floor) : { non-fluent, real, default = 0.0 }; 		  		
+		
+		// Penalty for persons in the elevator going in right/wrong direction
+		// Note: a constant 1.0 penalty for people waiting at a floor 
+		ELEVATOR-PENALTY-RIGHT-DIR : { non-fluent, real, default = 0.75 };
+		ELEVATOR-PENALTY-WRONG-DIR : { non-fluent, real, default = 3.00 };
+
+		// Useful definitions
+		TOP-FLOOR(floor)          : { non-fluent, bool, default = false };
+   		BOTTOM-FLOOR(floor)       : { non-fluent, bool, default = false };
+		ADJACENT-UP(floor, floor) : { non-fluent, bool, default = false }; 		  		
+		
+		// Person waiting state
+		person-waiting-up(floor)   : { state-fluent, bool, default = false };
+		person-waiting-down(floor) : { state-fluent, bool, default = false };
+		person-in-elevator-going-up(elevator)   : { state-fluent, bool, default = false };
+		person-in-elevator-going-down(elevator) : { state-fluent, bool, default = false };
+		
+		// Elevator state
+		elevator-dir-up(elevator) : { state-fluent, bool, default = true };
+		elevator-closed(elevator) : { state-fluent, bool, default = true };
+		elevator-at-floor(elevator, floor) : { state-fluent, bool, default = false };
+
+		// Actions: the elevator must move in one direction, it can only switch
+		//          direction by signaling the change when the door opens
+		//          (i.e., the passengers must know which direction the 
+		//           elevator is going before they get on... then the elevator
+		//           is constrained to go in that direction when the door closes).
+		move-current-dir(elevator)     : { action-fluent, bool, default = false };
+		open-door-going-up(elevator)   : { action-fluent, bool, default = false };
+		open-door-going-down(elevator) : { action-fluent, bool, default = false };
+		close-door(elevator)           : { action-fluent, bool, default = false };
+	};
+  
+	cpfs {
+
+		person-waiting-up'(?f) = person-waiting-up(?f);
+			
+		person-waiting-down'(?f) = person-waiting-down(?f);
+
+  		person-in-elevator-going-up'(?e) = person-in-elevator-going-up(?e);
+
+  		person-in-elevator-going-down'(?e) = person-in-elevator-going-down(?e);
+
+		elevator-closed'(?e) = elevator-closed(?e);
+
+		elevator-dir-up'(?e) = elevator-dir-up(?e);
+		
+		elevator-at-floor'(?e, ?f) = elevator-at-floor(?e, ?f);
+	
+	};
+  
+  	// Reward is a sum of waiting penalties for those in elevators and at floor
+	reward = 
+		[sum_{?e: elevator} [
+			-ELEVATOR-PENALTY-RIGHT-DIR * (person-in-elevator-going-up(?e) ^ elevator-dir-up(?e))
+		]] + 
+		[sum_{?e: elevator} [
+			-ELEVATOR-PENALTY-RIGHT-DIR * (person-in-elevator-going-down(?e) ^ ~elevator-dir-up(?e))
+		]] + 
+		[sum_{?e: elevator} [
+			-ELEVATOR-PENALTY-WRONG-DIR * (person-in-elevator-going-up(?e) ^ ~elevator-dir-up(?e))
+		]] + 
+		[sum_{?e: elevator} [
+			-ELEVATOR-PENALTY-WRONG-DIR * (person-in-elevator-going-down(?e) ^ elevator-dir-up(?e))
+		]] + 
+		[sum_{?f: floor} [
+			- person-waiting-up(?f) - person-waiting-down(?f)
+		]];
+
+}

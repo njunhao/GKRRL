@@ -1,0 +1,36 @@
+non-fluents nf_tiago_fetch_inst_mdp__d2_9 {
+    domain = tiago_fetch_mdp;
+    objects {
+        obj : {o1, o2, o3, o4, o5, o6};
+        robot : {r1};
+        waypoint : {wp0, wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9};
+    };
+    non-fluents {
+        OBJECT_GOAL(o1, wp7);
+        OBJECT_GOAL(o2, wp5);
+        OBJECT_GOAL(o3, wp4);
+        OBJECT_GOAL(o4, wp1);
+        OBJECT_GOAL(o5, wp2);
+        OBJECT_GOAL(o6, wp0);
+
+        // COST = -1;
+    };
+}
+
+instance tiago_fetch_inst_mdp__d2_9 {
+    domain = tiago_fetch_mdp;
+    non-fluents = nf_tiago_fetch_inst_mdp__d2_9;
+    init-state {
+        emptyhand(r1);
+        object_at(o1, wp5);
+        object_at(o2, wp9);
+        object_at(o3, wp8);
+        object_at(o4, wp4);
+        object_at(o5, wp0);
+        object_at(o6, wp3);
+        robot_at(r1, wp8);
+    };
+    max-nondef-actions = 1;
+    horizon = 40;
+    discount = 1.0;
+}

@@ -1,0 +1,50 @@
+non-fluents nf_husky_inspection_inst_mdp__p2_5 {
+    domain = husky_inspection_mdp;
+
+    objects {
+        robot : {r1};
+        waypoint : {wp0, wp1, wp2, wp3, wp4, wp5};
+        obj : {poi_valve1, poi_valve2, poi1, poi2};
+    };
+
+    non-fluents {
+        // TASK_REWARD = 10;
+
+        PROB_LOCALISED(r1) = 1.0;
+        PROB_FOUND_DAMAGED(r1, poi_valve1) = 0.2;
+        PROB_FOUND(r1, poi_valve1) = 1.0;
+        PROB_INSPECTED_DAMAGED(r1, poi_valve1) = 0.2;
+        PROB_INSPECTED(r1, poi_valve1) = 1.0;
+        PROB_IMAGE_TAKEN_DAMAGED(r1, poi_valve1) = 0.2;
+        PROB_IMAGE_TAKEN(r1, poi_valve1) = 1.0;
+        PROB_VALVE_TURNED_DAMAGED(r1, poi_valve1) = 0.2;
+        PROB_VALVE_TURNED(r1, poi_valve1) = 1.0;
+        PROB_DAMAGED_MANIPULATOR(r1) = 0.1;
+        PROB_DAMAGED_CAMERA(r1) = 0.05;
+
+        BASE(wp3);
+        VALVE_AT(poi_valve1);
+        VALVE_AT(poi_valve2);
+
+        POI_AT(poi1, wp4);
+        POI_AT(poi2, wp4);
+        POI_AT(poi_valve1, wp1);
+        POI_AT(poi_valve2, wp2);
+
+        GOAL_POI_INSPECTED(poi1);
+        GOAL_POI_IMAGE_TAKEN(poi2);
+        GOAL_VALVE_TURNED(poi_valve1);
+        GOAL_VALVE_TURNED(poi_valve2);
+    };
+}
+
+instance husky_inspection_inst_mdp__p2_5 {
+    domain = husky_inspection_mdp;
+    non-fluents = nf_husky_inspection_inst_mdp__p2_5;
+    init-state {
+        robot_at(r1, wp5);
+    };
+    max-nondef-actions = 1;
+    horizon = 40;
+    discount = 1.00;
+}

@@ -1,0 +1,53 @@
+domain tiago_fetch_mdp {
+
+	types { 
+		obj : object;
+		robot : object;
+		waypoint : object;
+	};
+
+	pvariables {
+        TASK_REWARD : {non-fluent, real, default = 10.0};
+        COST : {non-fluent, real, default = -1.0};
+        PROB_LOSING_LOCALISATION(robot) : {non-fluent, real, default = 0};
+        PROB_DROP_OBJ(obj): {non-fluent, real, default = 0};
+        PROB_POOR_GRASP(obj): {non-fluent, real, default = 0};
+        OBJECT_GOAL(obj, waypoint) : {non-fluent, bool, default = false};
+
+		robot_at(robot, waypoint) : {state-fluent, bool, default = false};
+		localised(robot) : {state-fluent, bool, default = false};
+		emptyhand(robot) : {state-fluent, bool, default = false};
+		holding(robot, obj) : {state-fluent, bool, default = false};
+		poor_grasp(robot, obj) : {state-fluent, bool, default = false};
+		object_at(obj, waypoint) : {state-fluent, bool, default = false};
+
+		move(robot, waypoint) : {action-fluent, bool, default = false};
+		localise(robot) : {action-fluent, bool, default = false};
+		pick_up(robot, obj, waypoint) : {action-fluent, bool, default = false};
+		put_down(robot, obj, waypoint) : {action-fluent, bool, default = false};
+	};
+
+	cpfs {
+		robot_at'(?r, ?loc) = robot_at(?r, ?loc);
+
+		localised'(?r) = localised(?r);
+
+		emptyhand'(?r) = emptyhand'(?r);
+
+		poor_grasp'(?r, ?o) = poor_grasp(?r, ?o);
+
+		holding'(?r, ?o) = holding(?r, ?o);
+
+		object_at'(?o, ?loc) = object_at(?o, ?loc);
+	};
+
+    reward = [sum_{?o: obj} 
+                 [ TASK_REWARD * (exists_{?r: robot, ?loc: waypoint} [ (put_down(?r, ?o, ?loc) ^ OBJECT_GOAL(?o, ?loc)) ]) -
+                   TASK_REWARD * (exists_{?r: robot, ?loc: waypoint} [ (pick_up(?r, ?o, ?loc) ^ OBJECT_GOAL(?o, ?loc)) ])
+                 ]
+             ] +
+             [sum_{?r: robot, ?loc: waypoint} [COST * move(?r, ?loc)]] +
+             [sum_{?r: robot} [COST * localise(?r)]] +
+             [sum_{?r: robot, ?o: obj, ?loc: waypoint} [COST * pick_up(?r, ?o, ?loc)]] +
+             [sum_{?r: robot, ?o: obj, ?loc: waypoint} [COST * put_down(?r, ?o, ?loc)]];
+}

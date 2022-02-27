@@ -1,0 +1,36 @@
+////////////////////////////////////////////////////////////////////
+// Game of Life Boolean POMDP
+//
+// A simple DBN to encode Conway's cellular automata "game of life" 
+// on a grid.  One gets a reward for generating patterns that keep 
+// the most cells alive.
+//
+// Author: Scott Sanner (ssanner [at] gmail.com)
+//
+// State action constraints added by Thomas Keller 
+// (tkeller [at] informatik.uni-freiburg.de)
+////////////////////////////////////////////////////////////////////
+domain game_of_life_mdp {
+  	
+	requirements = { reward-deterministic };
+
+	types { 
+		x_pos : object;
+		y_pos : object; 
+	};
+      	
+	pvariables { 
+		NOISE-PROB(x_pos,y_pos) : { non-fluent, real, default = 0.1 };
+		NEIGHBOR(x_pos,y_pos,x_pos,y_pos) : { non-fluent, bool, default = false };
+		alive(x_pos,y_pos) : { state-fluent,  bool, default = false };
+		set(x_pos,y_pos)   : { action-fluent, bool, default = false };
+	};
+  
+	cpfs {
+		
+		alive'(?x,?y) = alive(?x,?y);
+	};
+    	
+	reward = sum_{?x : x_pos, ?y : y_pos} [alive(?x,?y) - set(?x,?y)];
+    	
+}

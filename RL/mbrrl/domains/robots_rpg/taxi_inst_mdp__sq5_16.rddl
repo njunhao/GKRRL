@@ -1,0 +1,110 @@
+non-fluents nf_taxi_inst_mdp__sq5_16 {
+    domain = taxi_mdp; 
+    objects { 
+        taxi : {t1};
+        pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9, wp10, wp11, wp12, wp13, wp14, wp15, wp16, wp17, wp18, wp19, wp20, wp21, wp22, wp23, wp24, wp25};
+        passenger : {p0};
+    }; 
+    
+    non-fluents {
+        // ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp6);
+        ADJACENT(wp2, wp3);
+        ADJACENT(wp2, wp7);
+        // ADJACENT(wp3, wp4);
+        ADJACENT(wp3, wp8);
+        ADJACENT(wp4, wp5);
+        ADJACENT(wp4, wp9);
+        ADJACENT(wp5, wp10);
+        // ADJACENT(wp6, wp7);
+        ADJACENT(wp6, wp11);
+        ADJACENT(wp7, wp8);
+        ADJACENT(wp7, wp12);
+        // ADJACENT(wp8, wp9);
+        ADJACENT(wp8, wp13);
+        ADJACENT(wp9, wp10);
+        ADJACENT(wp9, wp14);
+        ADJACENT(wp10, wp15);
+        ADJACENT(wp11, wp12);
+        ADJACENT(wp11, wp16);
+        ADJACENT(wp12, wp13);
+        ADJACENT(wp12, wp17);
+        ADJACENT(wp13, wp14);
+        ADJACENT(wp13, wp18);
+        ADJACENT(wp14, wp15);
+        ADJACENT(wp14, wp19);
+        ADJACENT(wp15, wp20);
+        ADJACENT(wp16, wp17);
+        ADJACENT(wp16, wp21);
+        // ADJACENT(wp17, wp18);
+        ADJACENT(wp17, wp22);
+        ADJACENT(wp18, wp19);
+        ADJACENT(wp18, wp23);
+        ADJACENT(wp19, wp20);
+        ADJACENT(wp19, wp24);
+        ADJACENT(wp20, wp25);
+        ADJACENT(wp21, wp22);
+        // ADJACENT(wp22, wp23);
+        ADJACENT(wp23, wp24);
+        ADJACENT(wp24, wp25);
+
+        // ADJACENT(wp2, wp1);
+        ADJACENT(wp6, wp1);
+        ADJACENT(wp3, wp2);
+        ADJACENT(wp7, wp2);
+        // ADJACENT(wp4, wp3);
+        ADJACENT(wp8, wp3);
+        ADJACENT(wp5, wp4);
+        ADJACENT(wp9, wp4);
+        ADJACENT(wp10, wp5);
+        // ADJACENT(wp7, wp6);
+        ADJACENT(wp11, wp6);
+        ADJACENT(wp8, wp7);
+        ADJACENT(wp12, wp7);
+        // ADJACENT(wp9, wp8);
+        ADJACENT(wp13, wp8);
+        ADJACENT(wp10, wp9);
+        ADJACENT(wp14, wp9);
+        ADJACENT(wp15, wp10);
+        ADJACENT(wp12, wp11);
+        ADJACENT(wp16, wp11);
+        ADJACENT(wp13, wp12);
+        ADJACENT(wp17, wp12);
+        ADJACENT(wp14, wp13);
+        ADJACENT(wp18, wp13);
+        ADJACENT(wp15, wp14);
+        ADJACENT(wp19, wp14);
+        ADJACENT(wp20, wp15);
+        ADJACENT(wp17, wp16);
+        ADJACENT(wp21, wp16);
+        // ADJACENT(wp18, wp17);
+        ADJACENT(wp22, wp17);
+        ADJACENT(wp19, wp18);
+        ADJACENT(wp23, wp18);
+        ADJACENT(wp20, wp19);
+        ADJACENT(wp24, wp19);
+        ADJACENT(wp25, wp20);
+        ADJACENT(wp22, wp21);
+        // ADJACENT(wp23, wp22);
+        ADJACENT(wp24, wp23);
+        ADJACENT(wp25, wp24);
+
+        DESTINATION(p0, wp1);
+        // TAXI_STAND(wp1);
+        // TAXI_STAND(wp4);
+        // TAXI_STAND(wp21);
+        // TAXI_STAND(wp25);
+    };
+}
+
+instance taxi_inst_mdp__sq5_16 {
+    domain = taxi_mdp; 
+    non-fluents = nf_taxi_inst_mdp__sq5_16;
+    init-state {
+        passenger_at(p0, wp21);
+        taxi_at(t1, wp2);
+    };
+    max-nondef-actions = 1;
+    horizon = 20;
+    discount = 1.0;
+}

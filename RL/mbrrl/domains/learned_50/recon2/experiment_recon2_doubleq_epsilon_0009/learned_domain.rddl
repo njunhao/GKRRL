@@ -1,0 +1,94 @@
+
+domain recon2_mdp {
+  	
+	requirements = { 
+		reward-deterministic  
+	};
+
+	types { 
+		pos : object;
+		obj : object;
+		agent: object;
+		tool : object;
+	};
+
+	pvariables { 
+
+		COST: {non-fluent, real, default = -1.0};
+	
+		ADJACENT(pos, pos)   : { non-fluent, bool, default = false };
+
+		OBJECT_AT(obj, pos) : { non-fluent, bool, default = false };
+		
+		HAZARD(pos) : { non-fluent, bool, default = false };
+
+		DAMAGE_PROB(tool):   { non-fluent, real, default = 0.0 };
+		DETECT_PROB:         { non-fluent, real, default = 1.0 };  // original value = 0.8
+		DETECT_PROB_DAMAGED: { non-fluent, real, default = 0.4 };
+		
+		CAMERA_TOOL(tool) : { non-fluent, bool, default = false };
+		LIFE_TOOL(tool)   : { non-fluent, bool, default = false };
+		WATER_TOOL(tool)  : { non-fluent, bool, default = false };
+
+		BASE(pos): { non-fluent, bool, default = false };
+
+		GOOD_PIC_WEIGHT : { non-fluent, real, default = 20.0 };  // original value = 1
+		BAD_PIC_WEIGHT  : { non-fluent, real, default = 20.0 };  // original value = 2
+
+		damaged(tool) : { state-fluent, bool, default = false };
+		
+		waterChecked(obj)  : { state-fluent, bool, default = false };
+		waterDetected(obj) : { state-fluent, bool, default = false };
+
+		lifeChecked(obj)  : { state-fluent, bool, default = false };
+		lifeChecked2(obj) : { state-fluent, bool, default = false };
+		lifeDetected(obj) : { state-fluent, bool, default = false };
+
+		pictureTaken(obj) : { state-fluent, bool, default = false };
+		agentAt(agent, pos) : { state-fluent, bool, default = false };
+
+		move(agent, pos) : {action-fluent, bool, default = false};
+		useToolOn(agent, tool, obj) : {action-fluent, bool, default = false};
+		repair(agent, tool) : {action-fluent, bool, default = false};
+	};
+  
+	cpfs {
+		
+		damaged'(?X) = if (exists_{?Y: agent, ?Z: obj} [(useToolOn(?Y, ?X, ?Z) ^ ~damaged(?X) ^ ~pictureTaken(?Z))]) then (Bernoulli (0.521053)) else if (exists_{?Y: agent} [(repair(?Y, ?X) ^ damaged(?X))]) then (Bernoulli (0.351211)) else damaged(?X);  //silly else structure needed because of the way adjacency is encoded
+
+		waterChecked'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ WATER_TOOL(?Z) ^ ~waterChecked(?X) ^ ~waterDetected(?X))]) then (Bernoulli (0.652482)) else waterChecked(?X);
+
+		waterDetected'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ WATER_TOOL(?Z) ^ ~waterChecked(?X) ^ ~waterDetected(?X))]) then (Bernoulli (0.4375)) else waterDetected(?X);
+
+		lifeChecked'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ LIFE_TOOL(?Z) ^ ~lifeChecked(?X))]) then (Bernoulli (0.68546)) else lifeChecked(?X);
+		
+		lifeChecked2'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ LIFE_TOOL(?Z) ^ lifeChecked(?X) ^ ~lifeChecked2(?X) ^ waterDetected(?X))]) then (Bernoulli (0.619048)) else lifeChecked2(?X);
+
+		lifeDetected'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ LIFE_TOOL(?Z) ^ ~lifeChecked2(?X) ^ ~lifeDetected(?X) ^ pictureTaken(?X))]) then (Bernoulli (0.666667)) else lifeDetected(?X);	
+
+		pictureTaken'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ CAMERA_TOOL(?Z) ^ ~damaged(?Z) ^ ~pictureTaken(?X))]) then (Bernoulli (0.730769)) else pictureTaken(?X);
+
+		agentAt'(?X, ?Y) = if (move(?X, ?Y)) then KronDelta(true) else if (move(?X, ?Y) ^ agentAt(?X, ?Y)) then (Bernoulli (0.545741)) else agentAt(?X, ?Y);
+	};
+    	
+
+	reward = [sum_{?a: agent, ?loc: pos} [COST * move(?a, ?loc)]] +
+			 [sum_{?a: agent, ?t: tool, ?o : obj} [COST * useToolOn(?a, ?t, ?o)]] +
+			 [sum_{?a: agent, ?t: tool} [COST * repair(?a, ?t)]] +
+			 [sum_{?o : obj}  
+				 (GOOD_PIC_WEIGHT * 
+				  [ ~pictureTaken(?o) ^ lifeDetected(?o) ^ exists_{?a: agent, ?t: tool} [useToolOn(?a, ?t, ?o) ^ CAMERA_TOOL(?t) ^ ~damaged(?t)]])
+			 ] +
+			 [sum_{?o : obj} 
+				 -(BAD_PIC_WEIGHT * 
+				  [ ~lifeDetected(?o) ^ exists_{?a: agent, ?t: tool} [useToolOn(?a, ?t, ?o) ^ CAMERA_TOOL(?t)]])
+			 ]; 
+
+
+
+	action-preconditions {
+		forall_{?a: agent, ?to: pos} [move(?a, ?to) => (exists_{?from : pos} [(agentAt(?a, ?from) ^ (ADJACENT(?from, ?to) | ADJACENT(?to, ?from)))])];
+		forall_{?a: agent, ?t: tool, ?o: obj} [useToolOn(?a, ?t, ?o) => (exists_{?loc : pos} [(agentAt(?a, ?loc) ^ OBJECT_AT(?o, ?loc))])];
+	};
+}
+

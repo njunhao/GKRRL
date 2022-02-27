@@ -1,0 +1,11 @@
+Domain names are different from the dissertation.
+
+In dissertation:				In repository:
+recon 							recon2
+robot_fetch						tiago_fetch
+robot_inspection				turtlebot_survey
+service_robot					tiago_hri
+
+
+
+The binary is in /run_mbrrl/RL/mbrrl/src/mbrrl.zip. Extract it at the same directory.

@@ -1,0 +1,58 @@
+////////////////////////////////////////////////////////////////////
+//
+// Navigation MDP
+//
+// Author: Scott Sanner (ssanner [at] gmail.com)
+//
+// State action constraints added by Thomas Keller 
+// (tkeller [at] informatik.uni-freiburg.de)
+//
+////////////////////////////////////////////////////////////////////
+
+domain navigation_mdp {
+	requirements = {
+//		constrained-state,
+		reward-deterministic
+	};
+	
+	types {
+		xpos : object;
+		ypos : object;
+	};
+	
+	pvariables {
+
+		NORTH(ypos, ypos) : {non-fluent, bool, default = false};
+		SOUTH(ypos, ypos) : {non-fluent, bool, default = false};
+		EAST(xpos, xpos)  : {non-fluent, bool, default = false};
+		WEST(xpos, xpos)  : {non-fluent, bool, default = false};
+
+		MIN-XPOS(xpos) : {non-fluent, bool, default = false};
+		MAX-XPOS(xpos) : {non-fluent, bool, default = false};
+		MIN-YPOS(ypos) : {non-fluent, bool, default = false};
+		MAX-YPOS(ypos) : {non-fluent, bool, default = false};
+	
+		P(xpos, ypos) : {non-fluent, real, default = 0.0};
+		
+		GOAL(xpos,ypos) : {non-fluent, bool, default = false};
+		
+		// Fluents
+		robot-at(xpos, ypos) : {state-fluent, bool, default = false};
+		
+		// Actions
+		move-north : {action-fluent, bool, default = false};
+		move-south : {action-fluent, bool, default = false};
+		move-east  : {action-fluent, bool, default = false};
+		move-west  : {action-fluent, bool, default = false};
+	};
+	
+	cpfs {
+	
+		robot-at'(?x,?y) = robot-at(?x,?y);
+				
+	};
+	
+	// 0 reward for reaching goal, -1 in all other cases
+	reward = [sum_{?x : xpos, ?y : ypos} -(GOAL(?x,?y) ^ ~robot-at(?x,?y))]; 
+	
+}

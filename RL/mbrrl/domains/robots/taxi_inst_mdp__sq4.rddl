@@ -1,0 +1,78 @@
+non-fluents nf_taxi_inst_mdp__sq4 {
+    domain = taxi_mdp;
+    objects {
+        taxi : {t1};
+        pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9, wp10, wp11, wp12, wp13, wp14, wp15, wp16};
+        passenger : {p0};
+    };
+    
+    non-fluents {
+        // ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp5);
+        ADJACENT(wp2, wp3);
+        ADJACENT(wp2, wp6);
+        // ADJACENT(wp3, wp4);
+        ADJACENT(wp3, wp7);
+        ADJACENT(wp4, wp8);
+        ADJACENT(wp5, wp6);
+        ADJACENT(wp5, wp9);
+        ADJACENT(wp6, wp7);
+        ADJACENT(wp6, wp10);
+        ADJACENT(wp7, wp8);
+        ADJACENT(wp7, wp11);
+        ADJACENT(wp8, wp12);
+        ADJACENT(wp9, wp10);
+        ADJACENT(wp9, wp13);
+        ADJACENT(wp10, wp11);
+        ADJACENT(wp10, wp14);
+        ADJACENT(wp11, wp12);
+        ADJACENT(wp11, wp15);
+        ADJACENT(wp12, wp16);
+        ADJACENT(wp13, wp14);
+        // ADJACENT(wp14, wp15);
+        ADJACENT(wp15, wp16);
+
+        // ADJACENT(wp2, wp1);
+        ADJACENT(wp5, wp1);
+        ADJACENT(wp3, wp2);
+        ADJACENT(wp6, wp2);
+        // ADJACENT(wp4, wp3);
+        ADJACENT(wp7, wp3);
+        ADJACENT(wp8, wp4);
+        ADJACENT(wp6, wp5);
+        ADJACENT(wp9, wp5);
+        ADJACENT(wp7, wp6);
+        ADJACENT(wp10, wp6);
+        ADJACENT(wp8, wp7);
+        ADJACENT(wp11, wp7);
+        ADJACENT(wp12, wp8);
+        ADJACENT(wp10, wp9);
+        ADJACENT(wp13, wp9);
+        ADJACENT(wp11, wp10);
+        ADJACENT(wp14, wp10);
+        ADJACENT(wp12, wp11);
+        ADJACENT(wp15, wp11);
+        ADJACENT(wp16, wp12);
+        ADJACENT(wp14, wp13);
+        // ADJACENT(wp15, wp14);
+        ADJACENT(wp16, wp15);
+
+        DESTINATION(p0, wp1);
+        // TAXI_STAND(wp1);
+        // TAXI_STAND(wp4);
+        // TAXI_STAND(wp13);
+        // TAXI_STAND(wp16);
+    };
+}
+
+instance taxi_inst_mdp__sq4 {
+    domain = taxi_mdp;
+    non-fluents = nf_taxi_inst_mdp__sq4;
+    init-state {
+        passenger_at(p0, wp8);
+        taxi_at(t1, wp16);
+    };
+    max-nondef-actions = 1;
+    horizon  = 20;
+    discount = 1.0;
+}

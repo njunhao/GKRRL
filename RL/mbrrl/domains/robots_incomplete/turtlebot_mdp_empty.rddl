@@ -1,0 +1,68 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// A domain for turtlebot exploration, demo for ROSPlan.
+//
+// Author: Gerard Canal (gcanal@iri.upc.edu)
+// 
+// Based on the demo domain for the turtlebot.
+// Thanks to Florian Geißer, Thomas Keller and Scott Sanner for the help.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+domain turtlebot_mdp {
+    
+    types {
+        waypoint: object;
+        robot: object;
+    };
+
+    pvariables {
+        // Action costs and penalties
+        COST_MOVE(robot):  {non-fluent, real, default = 0};
+        VISIT_WP_REWARD:   {non-fluent, real, default = 5};
+
+        // Non-fluents
+        dock_at(waypoint): { non-fluent, bool, default = false };
+
+
+        // State fluents
+        robot_at(robot, waypoint): { state-fluent, bool, default = false };
+        visited(waypoint): { state-fluent, bool, default = false };
+        undocked(robot): { state-fluent, bool, default = false };
+        docked(robot): { state-fluent, bool, default = false };
+        localised(robot): { state-fluent, bool, default = false };
+
+        // Action fluents
+        move(robot, waypoint, waypoint): { action-fluent, bool, default = false }; // robot from to
+        localise(robot): { action-fluent, bool, default = false };
+        dock(robot, waypoint): { action-fluent, bool, default = false };
+        undock(robot, waypoint): { action-fluent, bool, default = false };
+    };
+
+    cpfs {
+
+        robot_at'(?r, ?loc) = robot_at(?r, ?loc);
+
+        visited'(?loc) = visited(?loc);
+
+        undocked'(?r) = undocked(?r);
+
+        docked'(?r) = docked(?r);
+
+        localised'(?r) = localised(?r);
+
+    };
+
+    // Goal is to visit all the waypoints, so we get reward for them, but moving has a cost!
+    reward = [sum_{?r: robot, ?from: waypoint, ?to: waypoint} [COST_MOVE(?r)*move(?r, ?from, ?to)]] +
+             [sum_{?r:robot, ?loc: waypoint} [VISIT_WP_REWARD*(exists_{?from: waypoint} (move(?r, ?from, ?loc)))]] -
+             [sum_{?r: robot} [1]];
+             
+    state-invariants {
+
+        // Robot can't be docked and undocked at the same time
+        forall_{?r: robot} [docked(?r) <=> ~undocked(?r)];
+
+    };
+}

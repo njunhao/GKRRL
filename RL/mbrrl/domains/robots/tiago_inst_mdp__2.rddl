@@ -1,0 +1,33 @@
+non-fluents nf_tiago_inst_mdp__2 {
+    domain = tiago_mdp;
+    objects {
+        obj : {o1, o2, o3, o4, o5, o6};
+        person : {p1, p2, p3};
+        robot : {r1};
+        waypoint : {wp0, wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9};
+    };
+    non-fluents {
+        PROB_LOSING_LOCALISATION = 0.1;
+    };
+}
+
+instance tiago_inst_mdp__2 {
+    domain = tiago_mdp;
+    non-fluents = nf_tiago_inst_mdp__2;
+    init-state {
+        robot_at(r1, wp0);
+        object_at(o1, wp1);
+        object_at(o2, wp2);
+        object_at(o3, wp3);
+        object_at(o4, wp5);
+        object_at(o5, wp6);
+        object_at(o6, wp7);
+        emptyhand(r1);
+        person_at(p1, wp4);
+        person_at(p2, wp8);
+        person_at(p3, wp9);
+    };
+    max-nondef-actions = 1;
+    horizon = 20;
+    discount = 1.0;
+}

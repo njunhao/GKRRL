@@ -1,0 +1,98 @@
+Disclaimer: Tested on Ubuntu 16.04, Python 3.6.3
+
+
+
+>> RUN EXPERIMENTS
+
+1) Edit setting file /run_mbrrl/RL/mbrrl/scripts/run_experiments/experiments_settings_X.py
+
+There are a lot of settings, these are the key ones at the top:
+	num_reps
+	num_rounds
+	problems
+
+Then go to line 181 and below to edit the rest of the parameters. I have preset some 'combinations' for my KR and PRL paper. To replicate them, just change setting_choice = 'kr' or setting_choice = 'prl'.
+
+For transfer learning, make sure import_knowledge_folder is defined correctly. To run transfer learning experiments, use setting_choice = 'transfer-learning'. I have some example Q-functions in '/run_mbrrl/RL/mbrrl/policy' so you should be able to run some transfer learning experiments right away.
+
+Verbose:
+Try to test the verbose flags with a small number of episodes to see what they do. They can print out quite a bit of stuff, racking up tens of gigabyte of memory in minutes. The larger the number, the more verbose it gets.
+
+Linear function approximation:
+GND_APPROX defines the ground approximation (do not edit)
+CX_BASIC defines the first-order approximation and various combinations of contextual knowledge. I have defined 24 combinations which you can try out.
+
+You can edit line 325 onwards to add another if...else condition for a particularr experiment combination that you are interested in.
+
+You can create your own setting file as long as it follows this naming convention: /run_mbrrl/RL/mbrrl/scripts/run_experiments/experiments_settings_<setting file>.py
+
+
+2) Run algorithm
+You need two terminals.
+
+A) Terminal 1 for rddlsim:
+	$ cd /run_mbrrl/RL/mbrrl/scripts/run_experiments
+	$ ./run_experiments.py <setting file> server -port <port num>
+
+For example, if using experiments_settings_X.py:
+	$ ./run_experiments.py X server -port 2323
+
+For example, if using experiments_settings_example.py:
+	$ ./run_experiments.py example server -port 2323
+
+
+B) Terminal 2 for RRL algorithm:
+	$ cd /run_mbrrl/RL/mbrrl/scripts/run_experiments
+	$ ./run_experiments.py <setting file> client -port <port num> -problem <problem num> -lfa <LFA num>
+
+Port number must be the same for both terminals. 
+<problem num> is the problem instance to run (problems[problem num] where problems is defined in experiments_settings_X.py)
+<LFA num> is the LFA configuration to run (function_approximations[LFA num] where function_approximations is defined in experiments_settings_X.py)
+
+All arguments are optional. By default, the port num is 2323, all combinations of problem instances and LFA configuration will run.
+
+Domain and problem files will be copied to avoid modifying the original files. Take note of /run_mbrrl/RL/mbrrl/domains/experiments-<port num>, you can delete these folders once the experiments are done.
+
+
+
+>> PLOT RESULTS
+Results will be saved to /run_mbrrl/RL/mbrrl/results-<port num>
+mbrrl.log is the most important file and should not be deleted.
+qvalue_approximation.dat is the Q-function which can be imported for transfer learning.
+All other files can be deleted.
+
+$ cd /run_mbrrl/RL/mbrrl/scripts/analyse_experiments
+
+To plot results in /run_mbrrl/RL/mbrrl/results-<port num>:
+$ python3 batch-plot.py <port num>
+
+Or to plot results in any directory:
+$ python3 batch-plot.py <directory>
+
+Or to compare results from multiple directories:
+$ python3 batch-plot.py <directory> <directory> <directory> <directory> ...
+
+
+The file you may want to edit is /run_mbrrl/RL/mbrrl/scripts/analyse_experiments/batch_plot.py
+You shouldn't need to edit any other files. There is a lot to batch_plot.py but a simple use is to edit:
+	settings['folders_to_analyse']
+	settings['plot_options']
+	settings['generic_plot_options']
+	settings['plot_settings']
+
+Legends are automatically generated and can be lengthy. You will have to manually overwrite the legends by editting settings['legend_labels']
+
+
+
+>> ADD ADDITIONAL DOMAINS
+1) Add .rddl files to /run_mbrrl/RL/mbrrl/domains/robots
+2) Edit /run_mbrrl/RL/mbrrl/scripts/run_experiments/domains_utils.py
+	Example:
+		lsof_domains.add(Domain(
+		                    **{'name': 'academic_advising',
+		                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+		                       'rpg_folder': None,
+		                       'approx': None,
+		                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/academic_advising_mdp_empty.rddl'}))
+
+The algorithm is not guaranteed to work as the terminal states, goal context, and location context are hardcoded.

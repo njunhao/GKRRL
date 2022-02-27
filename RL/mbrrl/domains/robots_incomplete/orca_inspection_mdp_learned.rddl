@@ -1,0 +1,150 @@
+domain orca_inspection_mdp {
+    types {
+        robot : object;
+        other_robot : object;
+        waypoint : object;
+        obj : object;
+    };
+
+    pvariables {
+        TASK_REWARD: {non-fluent, real, default = 100.0};
+        COST_MOVE(robot, waypoint, waypoint): {non-fluent, real, default = -10.0};
+        COST_LOCALISE(robot): {non-fluent, real, default = -10.0};
+        COST_LOCATE_POI(robot, obj): {non-fluent, real, default = -10.0};
+        COST_INSPECT_POI(robot, obj): {non-fluent, real, default = -10.0};
+        COST_TAKE_IMAGE(robot): {non-fluent, real, default = -10.0};
+        COST_MANIPULATE_VALVE(robot): {non-fluent, real, default = -10.0};        
+        COST_REPAIR_CAMERA(robot): {non-fluent, real, default = -10.0};
+        COST_REPAIR_MANIPULATOR(robot): {non-fluent, real, default = -10.0};
+
+        PROB_LOCALISED(robot) : {non-fluent, real, default = 1.0};
+        PROB_FOUND_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_FOUND(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_INSPECTED_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_INSPECTED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_IMAGE_TAKEN_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_IMAGE_TAKEN(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_VALVE_TURNED_DAMAGED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_VALVE_TURNED(robot, obj) : {non-fluent, real, default = 1.0};
+        PROB_DAMAGED_MANIPULATOR(robot) : {non-fluent, real, default = 0.0};
+        PROB_DAMAGED_CAMERA(robot) : {non-fluent, real, default = 0.0};
+
+        HAS_MANIPULATOR(robot) : {non-fluent, bool, default = true};
+
+        GOAL_POI_INSPECTED(obj): {non-fluent, bool, default = false};
+        GOAL_VALVE_TURNED(obj): {non-fluent, bool, default = false};
+        GOAL_POI_IMAGE_TAKEN(obj): {non-fluent, bool, default = false};
+        POI_AT(obj, waypoint) : {non-fluent, bool, default = false};
+        BASE(waypoint) : {non-fluent, bool, default = false};
+        VALVE_AT(obj) : {non-fluent, bool, default = false};
+        OTHER_ROBOT_AT(other_robot, waypoint) : {non-fluent, bool, default = true};
+        
+        robot_at(robot, waypoint) : {state-fluent, bool, default = false};
+        localised(robot) : {state-fluent, bool, default = false};
+        poi_found(robot, obj) : {state-fluent, bool, default = false};
+        poi_inspected(robot, obj) : {state-fluent, bool, default = false};
+        poi_image_taken(robot, obj) : {state-fluent, bool, default = false};
+        poi_valve_turned(robot, obj) : {state-fluent, bool, default = false};
+        damaged_manipulator(robot) : {state-fluent, bool, default = false};
+        damaged_camera(robot) : {state-fluent, bool, default = false};
+        reward_received_for_inspection(obj): {state-fluent, bool, default = false};
+        reward_received_for_manipulation(obj): {state-fluent, bool, default = false};
+        reward_received_for_image_taken(obj): {state-fluent, bool, default = false};
+
+        goto_waypoint(robot, waypoint, waypoint) : {action-fluent, bool, default = false};
+        localise(robot) : {action-fluent, bool, default = false};
+        locate_poi(robot, obj) : {action-fluent, bool, default = false};
+        inspect_poi(robot, obj) : {action-fluent, bool, default = false};
+        take_image(robot, obj) : {action-fluent, bool, default = false};
+        manipulate_valve(robot, obj) : {action-fluent, bool, default = false};
+        repair_manipulator(robot) : {action-fluent, bool, default = false};
+        repair_camera(robot) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+
+        robot_at'(?r, ?wp) = 
+                if (exists_{?wp1: waypoint} [(goto_waypoint(?r, ?wp1, ?wp))]) then true
+                else if (exists_{?wp1: waypoint} [(goto_waypoint(?r, ?wp, ?wp1))]) then false 
+                else robot_at(?r, ?wp);
+        
+        // OTHER_ROBOT_AT'(?r, ?wp) = 
+        //         if (exists_{?wp1: waypoint} [?wp ~= ?wp ^ OTHER_ROBOT_AT(?r, ?wp1)]) then false
+        //         else if (exists_{?poi: obj} [(VALVE_AT(?poi) ^ POI_AT(?poi, ?wp))] ^ ~exists_{?wp1: waypoint} [OTHER_ROBOT_AT(?r, ?wp1)]) then Bernoulli(0.3)
+        //         else OTHER_ROBOT_AT(?r, ?wp);
+
+        localised'(?r) =
+                if (localise(?r)) then true
+                else if (exists_{?wpi : waypoint, ?wpf : waypoint} [goto_waypoint(?r, ?wpi, ?wpf)]) then (Bernoulli (0.884049))
+                else localised(?r);
+
+        poi_found'(?r, ?poi) = 
+                if (locate_poi(?r, ?poi) ^ damaged_camera(?r)) then (Bernoulli (0.769498))
+                else if (locate_poi(?r, ?poi)) then true
+                else poi_found(?r, ?poi);     // robot must not move away else poi_found is false
+        
+        poi_inspected'(?r, ?poi) = 
+                if (inspect_poi(?r, ?poi) ^ damaged_camera(?r) ^ (~VALVE_AT(?poi) | HAS_MANIPULATOR(?r) | exists_{?r1: other_robot, ?wp: waypoint} [(OTHER_ROBOT_AT(?r1, ?wp) ^ POI_AT(?poi, ?wp))]) ) then (Bernoulli (0.688425))
+                else if (inspect_poi(?r, ?poi) ^ (~VALVE_AT(?poi) | HAS_MANIPULATOR(?r) | exists_{?r1: other_robot, ?wp: waypoint} [(OTHER_ROBOT_AT(?r1, ?wp) ^ POI_AT(?poi, ?wp))])) then true
+                else poi_inspected(?r, ?poi);
+
+        poi_image_taken'(?r, ?poi) = 
+                if (take_image(?r, ?poi) ^ damaged_camera(?r)) then (Bernoulli (0.243118))
+                else if (take_image(?r, ?poi)) then true
+                else poi_image_taken(?r, ?poi);
+      
+        poi_valve_turned'(?r, ?poi) = 
+                if (manipulate_valve(?r, ?poi) ^ damaged_manipulator(?r) ^ exists_{?r1: other_robot, ?wp: waypoint} [(OTHER_ROBOT_AT(?r1, ?wp) ^ POI_AT(?poi, ?wp))]) then (Bernoulli (0.737623))
+                else if (manipulate_valve(?r, ?poi) ^ exists_{?r1: other_robot, ?wp: waypoint} [(OTHER_ROBOT_AT(?r1, ?wp) ^ POI_AT(?poi, ?wp))]) then true
+                else poi_valve_turned(?r, ?poi);
+     
+        damaged_manipulator'(?r) = 
+                if (repair_manipulator(?r)) then false  
+                else if (exists_{?wpi: waypoint, ?wpf: waypoint} [(goto_waypoint(?r, ?wpi, ?wpf))]) then (Bernoulli (0.120282))  
+                else damaged_manipulator(?r);
+
+        damaged_camera'(?r) =
+                if (repair_camera(?r)) then false
+                else if (~damaged_camera(?r)) then (Bernoulli (0.415337))
+                else damaged_camera(?r);
+
+        reward_received_for_inspection'(?poi) =
+                if (exists_{?r: robot} [(GOAL_POI_INSPECTED(?poi) ^ poi_inspected(?r, ?poi))]) then true
+                else reward_received_for_inspection(?poi);
+        
+        reward_received_for_manipulation'(?poi) =
+                if (exists_{?r: robot} [(GOAL_VALVE_TURNED(?poi) ^ poi_valve_turned(?r, ?poi))]) then true
+                else reward_received_for_manipulation(?poi);
+        
+        reward_received_for_image_taken'(?poi) =
+                if (exists_{?r: robot} [(GOAL_POI_IMAGE_TAKEN(?poi) ^ poi_image_taken(?r, ?poi))]) then true
+                else reward_received_for_image_taken(?poi);
+    };
+
+    action-preconditions {
+        // A robot can not be in two places at the same time (doesn't work)
+        // forall_{?r: other_robot, ?w1: waypoint, ?w2: waypoint} [?w1 == ?w2 | (OTHER_ROBOT_AT(?r, ?w1) => ~OTHER_ROBOT_AT(?r, ?w2))];
+
+        // forall_{?r: robot, ?wpi: waypoint, ?wpf: waypoint} [goto_waypoint(?r, ?wpi, ?wpf) => (robot_at(?r, ?wpi) ^ localised(?r) ^ (close_to(?wpi, ?wpf) | close_to(?wpf, ?wpi)))];
+        forall_{?r: robot, ?wpi: waypoint, ?wpf: waypoint} [goto_waypoint(?r, ?wpi, ?wpf) => (robot_at(?r, ?wpi) ^ localised(?r))];
+        forall_{?r: robot} [localise(?r) => (~localised(?r))];
+        forall_{?r: robot, ?poi: obj} [locate_poi(?r, ?poi) => (exists_{?wp: waypoint} (robot_at(?r, ?wp) ^ POI_AT(?poi, ?wp)) ^ localised(?r) ^ ~poi_found(?r, ?poi))];
+        forall_{?r: robot, ?poi: obj} [inspect_poi(?r, ?poi) => (exists_{?wp: waypoint} (robot_at(?r, ?wp) ^ POI_AT(?poi, ?wp)) ^ localised(?r) ^ poi_found(?r, ?poi) ^ ~poi_inspected(?r, ?poi) ^ (HAS_MANIPULATOR(?r) | VALVE_AT(?poi)))];
+        forall_{?r: robot, ?poi: obj} [take_image(?r, ?poi) => (exists_{?wp: waypoint} (robot_at(?r, ?wp) ^ POI_AT(?poi, ?wp)) ^ localised(?r) ^ poi_found(?r, ?poi) ^ ~poi_image_taken(?r, ?poi))];
+        forall_{?r: robot, ?poi: obj} [manipulate_valve(?r, ?poi) => (exists_{?wp: waypoint} (robot_at(?r, ?wp) ^ POI_AT(?poi, ?wp)) ^ localised(?r) ^ VALVE_AT(?poi) ^ poi_inspected(?r, ?poi) ^ ~poi_valve_turned(?r, ?poi) ^ HAS_MANIPULATOR(?r))];
+        forall_{?r: robot} [repair_manipulator(?r) => (exists_{?wp: waypoint} (robot_at(?r, ?wp) ^ BASE(?wp)) ^ damaged_manipulator(?r) ^ HAS_MANIPULATOR(?r))];
+        forall_{?r: robot} [repair_camera(?r) => (exists_{?wp: waypoint} (robot_at(?r, ?wp) ^ BASE(?wp)) ^ damaged_camera(?r))];
+    };
+
+    reward = [sum_{?r: robot, ?wpi: waypoint, ?wpf: waypoint} [COST_MOVE(?r, ?wpi, ?wpf) * goto_waypoint(?r, ?wpi, ?wpf)]] +                                      // not bi-directional
+            [sum_{?r: robot} [COST_LOCALISE(?r) * localise(?r)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_LOCATE_POI(?r, ?poi) * locate_poi(?r, ?poi)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_INSPECT_POI(?r, ?poi) * inspect_poi(?r, ?poi)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_TAKE_IMAGE(?r) * take_image(?r, ?poi)]] +
+            [sum_{?r: robot, ?poi: obj} [COST_MANIPULATE_VALVE(?r) * manipulate_valve(?r, ?poi)]] +
+            [sum_{?r: robot} [COST_REPAIR_MANIPULATOR(?r) * repair_manipulator(?r)]] +
+            [sum_{?r: robot} [COST_REPAIR_CAMERA(?r) * repair_camera(?r)]] +
+            TASK_REWARD * [sum_{?r: robot, ?poi: obj} [~reward_received_for_inspection(?poi) ^ GOAL_POI_INSPECTED(?poi) ^ poi_inspected(?r, ?poi)]] +             // cannot give reward for action as action may fail!
+            TASK_REWARD * [sum_{?r: robot, ?poi: obj} [~reward_received_for_manipulation(?poi) ^ GOAL_VALVE_TURNED(?poi) ^ poi_valve_turned(?r, ?poi)]] +
+            TASK_REWARD * [sum_{?r: robot, ?poi: obj} [~reward_received_for_image_taken(?poi) ^ GOAL_POI_IMAGE_TAKEN(?poi) ^ poi_image_taken(?r, ?poi)]];
+}

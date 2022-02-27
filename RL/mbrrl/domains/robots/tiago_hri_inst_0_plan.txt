@@ -1,0 +1,6 @@
+// comments allowed!
+put_down(r1, o1)
+pick_up(r1, o1)
+put_down(r1, o1)
+pick_up(r1, o3)
+put_down(r1, o3)

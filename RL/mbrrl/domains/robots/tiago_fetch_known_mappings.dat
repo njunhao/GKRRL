@@ -1,0 +1,6 @@
+robot_at :- move
+localised :- localise; move
+emptyhand :- pick_up; put_down
+holding :- pick_up; put_down
+poor_grasp :- pick_up; put_down
+object_at :- pick_up; put_down

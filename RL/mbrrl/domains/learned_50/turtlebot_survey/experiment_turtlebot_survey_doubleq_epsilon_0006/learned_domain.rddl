@@ -1,0 +1,114 @@
+domain turtlebot_survey_mdp {
+    
+    types {
+        waypoint: object;
+        robot: object;
+        obj: object;
+    };
+
+    pvariables {
+        COST_MOVE: {non-fluent, real, default = -1.0};
+        COST_LOCALISE: {non-fluent, real, default = -1.0};
+        COST_DOCK: {non-fluent, real, default = -1.0};
+        COST_UNDOCK: {non-fluent, real, default = -1.0};
+        COST_SURVEY: {non-fluent, real, default = -1.0};
+        COST_INSPECTION: {non-fluent, real, default = -1.0};
+        COST_TRANSMIT: {non-fluent, real, default = -1.0};
+        COST_CALIBRATE: {non-fluent, real, default = -1.0};
+        TASK_REWARD: {non-fluent, real, default = 20.0};
+        PROB_LOSING_LOCALISATION : {non-fluent, real, default = 0.0};
+        PROB_POOR_CALIBRATION : {non-fluent, real, default = 0.0};
+        PROB_LOW_ENERGY : {non-fluent, real, default = 0.0};
+        PROB_SUCCESSFUL_SURVEY : {non-fluent, real, default = 1.0};
+        PROB_SUCCESSFUL_OBSERVATION : {non-fluent, real, default = 1.0};
+        PROB_SUCCESSFUL_SURVEY_DAMAGED : {non-fluent, real, default = 1.0};
+        PROB_SUCCESSFUL_OBSERVATION_DAMAGED : {non-fluent, real, default = 1.0};
+
+        DOCK_AT(waypoint): {non-fluent, bool, default = false };
+        COMM_TOWER(waypoint): {non-fluent, bool, default = false };
+        OBJECT_AT(obj, waypoint) : {non-fluent, bool, default = false};
+
+        robot_at(robot, waypoint): {state-fluent, bool, default = false};
+        undocked(robot): {state-fluent, bool, default = false };
+        docked(robot): {state-fluent, bool, default = false };
+        localised(robot): {state-fluent, bool, default = false };
+        object_found(robot, obj) : {state-fluent, bool, default = false};
+        object_inspected(robot, obj) : {state-fluent, bool, default = false};
+        object_info_received(obj) : {state-fluent, bool, default = false};
+        camera_calibrated(robot) : {state-fluent, bool, default = false};
+        has_energy(robot): {state-fluent, bool, default = false};
+        low_energy(robot): {state-fluent, bool, default = false};
+        reward_received(obj): {state-fluent, bool, default = false};
+
+        move(robot, waypoint): {action-fluent, bool, default = false};
+        localise(robot): {action-fluent, bool, default = false};
+        dock(robot, waypoint): {action-fluent, bool, default = false};
+        undock(robot, waypoint): {action-fluent, bool, default = false};
+        survey(robot, waypoint): {action-fluent, bool, default = false};
+        inspect_object(robot, obj): {action-fluent, bool, default = false};
+        transmit_info(robot): {action-fluent, bool, default = false};
+        calibrate_camera(robot) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+
+
+        robot_at'(?X, ?Y) = if (move(?X, ?Y) ^ localised(?X)) then KronDelta(true) else if (exists_{?Z: obj} [OBJECT_AT(?Z, ?Y) ^ low_energy(?X) ^ robot_at(?X, ?Y)]) then (Bernoulli (0.392857)) else robot_at(?X, ?Y);
+
+        undocked'(?X) = if (exists_{?Y: waypoint} [(undock(?X, ?Y))]) then KronDelta(true) else if (exists_{?Y: waypoint} [(dock(?X, ?Y))]) then KronDelta(false) else undocked(?X);
+
+        docked'(?X) = if (exists_{?Y: waypoint} [(dock(?X, ?Y))]) then KronDelta(true) else if (exists_{?Y: waypoint} [(undock(?X, ?Y))]) then KronDelta(false) else docked(?X);
+
+        localised'(?X) = if (localise(?X)) then KronDelta(true) else localised(?X);
+
+        object_found'(?Y, ?X) = if (exists_{?Z: waypoint} [(survey(?Y, ?Z) ^ OBJECT_AT(?X, ?Z) ^ camera_calibrated(?Y))]) then KronDelta(true) else if (exists_{?Z: waypoint} [OBJECT_AT(?X, ?Z) ^ ~camera_calibrated(?Y) ^ ~object_found(?Y, ?X) ^ robot_at(?Y, ?Z)]) then (Bernoulli (0.209302)) else object_found(?Y, ?X);
+
+        object_inspected'(?Y, ?X) = if (inspect_object(?Y, ?X) ^ object_found(?Y, ?X)) then KronDelta(true) else object_inspected(?Y, ?X);
+
+        object_info_received'(?o) = object_info_received(?o);
+
+        camera_calibrated'(?X) = if (exists_{?Y: obj} [(inspect_object(?X, ?Y) ^ camera_calibrated(?X))]) then (Bernoulli (0.68)) else camera_calibrated(?X);
+
+        low_energy'(?X) = if (low_energy(?X)) then KronDelta(false) else low_energy(?X);     // if low_energy is true, at next step set to false since has_energy will be false
+
+        has_energy'(?X) = if (exists_{?Y: waypoint} [(dock(?X, ?Y))]) then KronDelta(true) else if (transmit_info(?X) ^ low_energy(?X)) then KronDelta(false) else has_energy(?X);
+
+        reward_received'(?o) =
+                if (object_info_received(?o)) then true
+                else reward_received(?o);
+    };
+
+    reward = [sum_{?r: robot, ?loc: waypoint} [COST_MOVE * move(?r, ?loc)]] +
+             [sum_{?r: robot} [COST_LOCALISE * localise(?r)]] +
+             [sum_{?r: robot, ?loc: waypoint} [COST_DOCK * dock(?r, ?loc)]] +
+             [sum_{?r: robot, ?loc: waypoint} [COST_UNDOCK * undock(?r, ?loc)]] +
+             [sum_{?r: robot, ?loc: waypoint} [COST_SURVEY * survey(?r, ?loc)]] +
+             [sum_{?r: robot, ?o: obj} [COST_INSPECTION * inspect_object(?r, ?o)]] +
+             [sum_{?r: robot} [COST_TRANSMIT * transmit_info(?r)]] +
+             [sum_{?r: robot} [COST_CALIBRATE * calibrate_camera(?r)]] +
+             [sum_{?o: obj} [TASK_REWARD * (~reward_received(?o) ^ object_info_received(?o)) ]];
+
+
+    action-preconditions {
+        forall_{?r: robot, ?loc: waypoint} [move(?r, ?loc) => (has_energy(?r) ^ undocked(?r) ^ ~robot_at(?r, ?loc))];
+
+        forall_{?r: robot, ?loc1: waypoint, ?loc2: waypoint} [?loc1 == ?loc2 | (robot_at(?r, ?loc1) => ~robot_at(?r, ?loc2))];
+
+        forall_{?r: robot} [localise(?r) => has_energy(?r) ^ undocked(?r)];
+
+        forall_{?r: robot, ?loc: waypoint} [dock(?r, ?loc) => (DOCK_AT(?loc) ^ robot_at(?r, ?loc))];         // allow docking even if no energy
+        forall_{?r: robot, ?loc: waypoint} [undock(?r, ?loc) => (has_energy(?r) ^ DOCK_AT(?loc) ^ robot_at(?r, ?loc))];
+
+        forall_{?r: robot, ?loc: waypoint} [survey(?r, ?loc) => has_energy(?r) ^ undocked(?r) ^ robot_at(?r, ?loc)]; 
+        
+        forall_{?r: robot, ?o: obj} [inspect_object(?r, ?o) => has_energy(?r) ^ undocked(?r) ^ (exists_{?loc: waypoint} [(robot_at(?r, ?loc) ^ OBJECT_AT(?o, ?loc))]) ];
+        forall_{?r: robot} [transmit_info(?r) => has_energy(?r)];
+        forall_{?r: robot} [calibrate_camera(?r) => has_energy(?r)];
+    };
+
+    state-invariants {
+
+        forall_{?r: robot} [docked(?r) <=> ~undocked(?r)];
+    };
+}
+

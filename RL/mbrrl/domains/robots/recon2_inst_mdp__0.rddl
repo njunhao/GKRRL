@@ -1,0 +1,43 @@
+non-fluents nf_recon2_inst_mdp__0 {
+    domain = recon2_mdp; 
+    objects { 
+        pos : {wp1, wp2, wp3, wp4};
+        obj : {o0,o1};
+        agent : {a1};
+        tool : {l1,w1,p1};
+    }; 
+    non-fluents {
+        ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp3);
+        ADJACENT(wp2, wp4);
+        ADJACENT(wp3, wp4);
+
+        ADJACENT(wp2, wp1);
+        ADJACENT(wp3, wp1);
+        ADJACENT(wp4, wp2);
+        ADJACENT(wp4, wp3);
+
+        WATER_TOOL(w1);
+        LIFE_TOOL(l1);
+        CAMERA_TOOL(p1);
+        BASE(wp3);
+        OBJECT_AT(o0,wp4);
+        OBJECT_AT(o1,wp2);
+        HAZARD(wp2);
+        DAMAGE_PROB(w1) = 0.29898286;
+        DAMAGE_PROB(l1) = 0.3058349;
+        // GOOD_PIC_WEIGHT = 0.18377236;
+        // BAD_PIC_WEIGHT = 0.7311116;
+    };
+}
+instance recon2_inst_mdp__0 { 
+    domain = recon2_mdp; 
+     non-fluents = nf_recon2_inst_mdp__0;
+    init-state { 
+        agentAt(a1,wp3);
+    };
+    max-nondef-actions = 1;
+    horizon = 40;
+    discount = 1.0;
+} 
+

@@ -1,0 +1,83 @@
+domain robot_inspection_mdp {
+    
+    types {
+        pos: object;
+        robot: object;
+        obj: object;
+    };
+
+    pvariables {
+        // Action costs and penalties
+        COST: {non-fluent, real, default = -1.0};
+        TASK_REWARD: {non-fluent, real, default = 10.0};
+        PROB_DAMAGE : {non-fluent, real, default = 0.5};
+        PROB_SUCCESSFUL_SURVEY : {non-fluent, real, default = 1.0};
+        PROB_SUCCESSFUL_OBSERVATION : {non-fluent, real, default = 1.0};
+        PROB_SUCCESSFUL_SURVEY_DAMAGED : {non-fluent, real, default = 0.2};
+        PROB_SUCCESSFUL_OBSERVATION_DAMAGED : {non-fluent, real, default = 1.0};
+
+        // Non-fluents        
+        //connecting up the locations
+        ADJACENT(pos, pos): { non-fluent, bool, default = false };
+        HAZARD(pos, pos): { non-fluent, bool, default = false };
+        BASE(pos): {non-fluent, bool, default = false };
+        COMM_TOWER(pos): {non-fluent, bool, default = false };
+        OBJECT_AT(obj, pos) : {non-fluent, bool, default = false};
+
+        // State fluents
+        robot_at(robot, pos): {state-fluent, bool, default = false};
+        object_found(obj) : {state-fluent, bool, default = false};
+        object_inspected(obj) : {state-fluent, bool, default = false};
+        object_info_received(obj) : {state-fluent, bool, default = false};
+        camera_damaged(robot) : {state-fluent, bool, default = false};
+        camera_calibrated(robot) : {state-fluent, bool, default = false};
+
+        // Action fluents
+        move(robot, pos): {action-fluent, bool, default = false};
+        survey(robot, pos): {action-fluent, bool, default = false};
+        inspect_object(robot, obj): {action-fluent, bool, default = false};
+        transmit_info(robot): {action-fluent, bool, default = false};
+        calibrate_camera(robot) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+        robot_at'(?r, ?loc) = robot_at(?r, ?loc);
+
+        object_found'(?o) = object_found(?o);
+
+        object_inspected'(?o) = object_inspected(?o);
+
+        object_info_received'(?o) =
+                if (exists_{?r: robot, ?loc: pos} [transmit_info(?r) ^ object_inspected(?o)]) then true
+                else object_info_received(?o);
+
+        camera_damaged'(?r) = camera_damaged(?r);
+
+        camera_calibrated'(?r) = camera_calibrated(?r);
+    };
+
+    // Define cost for every action so that PROST can consider noop() cost as zero
+    reward = [sum_{?r: robot, ?loc: pos} [COST * move(?r, ?loc)]] +
+             [sum_{?r: robot, ?loc: pos} [COST * survey(?r, ?loc)]] +
+             [sum_{?r: robot, ?o: obj} [COST * inspect_object(?r, ?o)]] +
+             [sum_{?r: robot} [COST * transmit_info(?r)]] +
+             [sum_{?r: robot} [COST * calibrate_camera(?r)]] +
+             [sum_{?r: robot, ?o: obj} [TASK_REWARD * (transmit_info(?r) ^ object_inspected(?o) ^ ~object_info_received(?o))]];
+
+//    action-preconditions {
+//        forall_{?r: robot, ?to: pos} [move(?r, ?to) => exists_{?from : pos} [(robot_at(?r, ?from) ^ (ADJACENT(?from, ?to) | ADJACENT(?to, ?from)))]];
+//        
+//        // A robot can not move to its current position
+//        // forall_{?r: robot, ?from: pos, ?to: pos} [move(?r, ?from, ?to) => (?from ~= ?to)];
+//
+//        // A robot can not be in two places at the same time
+//        forall_{?r: robot, ?loc1: pos, ?loc2: pos} [?loc1 == ?loc2 | (robot_at(?r, ?loc1) => ~robot_at(?r, ?loc2))];
+//
+//        forall_{?r: robot, ?loc: pos} [survey(?r, ?loc) => robot_at(?r, ?loc)]; 
+//        
+//        // deictic references in preconditions
+//        forall_{?r: robot, ?o: obj} [inspect_object(?r, ?o) =>  (exists_{?loc : pos} [(robot_at(?r, ?loc) ^ OBJECT_AT(?o, ?loc))])];
+//        forall_{?r: robot} [transmit_info(?r) => (exists_{?loc : pos} [(robot_at(?r, ?loc) ^ COMM_TOWER(?loc))])];
+//        // forall_{?r: robot} [calibrate_camera(?r) => (exists_{?loc : pos} [(robot_at(?r, ?loc) ^ BASE(?loc))])];
+//    };
+}

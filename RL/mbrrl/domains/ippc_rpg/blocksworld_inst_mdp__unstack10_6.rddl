@@ -1,0 +1,35 @@
+non-fluents nf_blocksworld_inst_mdp__unstack10_6 {
+	domain = blocksworld_mdp;
+	objects {
+		block : { b1, b2, b3, b4, b5, b6, b7, b8, b9, b10 };
+	};
+	non-fluents {
+		COST = 0;						// action cost
+		GOAL_REWARD_ON = 0;				// if value is > 0, then goal is to put a block on another block
+		GOAL_REWARD_UNSTACK = 1;		// if value is > 0, then goal is to put all blocks on table
+		GOAL_REWARD_STACK = 0;			// if value is > 0, then goal is to stack all blocks into one column
+	};
+}
+
+instance blocksworld_inst_mdp__unstack10_6 {
+	domain = blocksworld_mdp;
+	non-fluents = nf_blocksworld_inst_mdp__unstack10_6;
+	init-state {
+		on_table(b4);
+		on(b8, b4);
+		on(b3, b8);
+		on(b5, b3);
+		clear(b5);
+		on_table(b9);
+		on(b6, b9);
+		on(b10, b6);
+		clear(b10);
+		on_table(b7);
+		on(b2, b7);
+		on(b1, b2);
+		clear(b1);
+	};
+	max-nondef-actions = 1;
+	horizon = 30;
+	discount = 1.0;
+}

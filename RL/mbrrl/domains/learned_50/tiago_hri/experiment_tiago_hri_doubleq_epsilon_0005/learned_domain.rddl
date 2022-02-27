@@ -1,0 +1,131 @@
+domain tiago_hri_mdp {
+    types { 
+        obj : object;
+        person : object;
+        robot : object;
+        waypoint : object;
+    };
+
+    pvariables {
+        COST: {non-fluent, real, default = -1.0};
+        TASK_REWARD : {non-fluent, real, default = 20};
+        PROB_LOSING_LOCALISATION : {non-fluent, real, default = 0.0};                              // unobservable state variable
+        PROB_NEED_ASSISTANCE(person) : {non-fluent, real, default = 0.1};                          // unobservable state variable 
+        TABLE_AT(waypoint) : {non-fluent, bool, default = false};
+        PERSON_GOAL_OBJECT_AT(person, obj, waypoint) : {non-fluent, bool, default = false};        // unobservable state variable
+        PERSON_GOAL_OBJECT_WITH(person, obj, person) : {non-fluent, bool, default = false};        // unobservable state variable
+        PERSON_IS_AT(person, waypoint) : {non-fluent, bool, default = false};                      // unobservable state variable
+        
+        robot_at(robot, waypoint) : {state-fluent, bool, default = false};
+        localised(robot) : {state-fluent, bool, default = false};
+        emptyhand(robot) : {state-fluent, bool, default = false};
+        holding(robot, obj) : {state-fluent, bool, default = false};
+        object_at(obj, waypoint) : {state-fluent, bool, default = false};
+        object_with(obj, person) : {state-fluent, bool, default = false};
+        goal_object_at(obj, waypoint) : {state-fluent, bool, default = false};
+        goal_object_with(obj, person) : {state-fluent, bool, default = false};
+        person_at(person, waypoint) : {state-fluent, bool, default = false};
+        need_assistance(person) : {state-fluent, bool, default = false};
+        needed_assistance(person) : {state-fluent, bool, default = false};
+        goal_attempted(obj) : {state-fluent, bool, default = false};
+        reward_received(obj) : {state-fluent, bool, default = false};
+
+        move(robot, waypoint, waypoint) : {action-fluent, bool, default = false};
+        localise(robot) : {action-fluent, bool, default = false};
+        find_person(robot, person) : {action-fluent, bool, default = false};
+        talk_to_person(robot, person) : {action-fluent, bool, default = false};
+        // if omit waypoint from pick_up or put_down, ROSPlan will give the wrong effect (object at wrong waypoint)
+        pick_up(robot, obj) : {action-fluent, bool, default = false};
+        put_down(robot, obj) : {action-fluent, bool, default = false};
+        take(robot, obj, person) : {action-fluent, bool, default = false};
+        give(robot, obj, person) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+        // in CoRL, find_person will change robot_at
+        robot_at'(?X, ?Y) = if (exists_{?Z: waypoint} [(move(?X, ?Z, ?Y))]) then KronDelta(true) else if (exists_{?Z: waypoint} [(move(?X, ?Y, ?Z))]) then KronDelta(false) else robot_at(?X, ?Y);
+
+        localised'(?X) = if (localise(?X)) then KronDelta(true) else if (exists_{?Y: waypoint, ?Z: waypoint} [(move(?X, ?Y, ?Z) ^ ~TABLE_AT(?Y) ^ emptyhand(?X) ^ localised(?X))]) then (Bernoulli (0.727273)) else if (exists_{?Y: person, ?Z: waypoint} [localised(?X) ^ need_assistance(?Y) ^ ~person_at(?Y, ?Z) ^ robot_at(?X, ?Z)]) then (Bernoulli (0.852941)) else localised(?X);
+        
+        emptyhand'(?X) = if (exists_{?Y: obj, ?Z: person} [(give(?X, ?Y, ?Z))]) then KronDelta(true) else if (exists_{?Y: obj} [(pick_up(?X, ?Y))]) then KronDelta(false) else emptyhand(?X);
+        
+        holding'(?Y, ?X) = if (pick_up(?Y, ?X)) then KronDelta(true) else if (exists_{?Z: person} [(give(?Y, ?X, ?Z))]) then KronDelta(false) else holding(?Y, ?X);
+        
+        object_at'(?X, ?Y) = if (exists_{?Z: robot} [(put_down(?Z, ?X) ^ robot_at(?Z, ?Y))]) then KronDelta(true) else if (exists_{?Z: robot} [(pick_up(?Z, ?X) ^ object_at(?X, ?Y))]) then (Bernoulli (0.367)) else object_at(?X, ?Y);
+        
+        object_with'(?X, ?Y) = if (exists_{?Z: robot} [(give(?Z, ?X, ?Y))]) then KronDelta(true) else if (exists_{?Z: robot} [(take(?Z, ?X, ?Y))]) then KronDelta(false) else object_with(?X, ?Y);
+        
+        // unobservable CPF
+        goal_object_at'(?o, ?loc) = goal_object_at(?o, ?loc);
+        
+        // unobservable CPF
+        goal_object_with'(?o, ?p) = goal_object_with(?o, ?p);
+
+        // unobservable CPF
+        person_at'(?X, ?Y) = if (exists_{?Z: robot} [(find_person(?Z, ?X) ^ ~TABLE_AT(?Y) ^ ~person_at(?X, ?Y) ^ robot_at(?Z, ?Y))]) then (Bernoulli (0.538462)) else person_at(?X, ?Y);
+
+        need_assistance'(?X) = if (exists_{?Y: robot} [(talk_to_person(?Y, ?X) ^ ~need_assistance(?X) ^ ~needed_assistance(?X))]) then (Bernoulli (0.56)) else if (exists_{?Y: robot} [(talk_to_person(?Y, ?X) ^ need_assistance(?X))]) then KronDelta(false) else need_assistance(?X);
+        
+        needed_assistance'(?X) = if (exists_{?Y: robot} [(talk_to_person(?Y, ?X) ^ need_assistance(?X))]) then KronDelta(true) else needed_assistance(?X);
+        
+        goal_attempted'(?o) =
+                if (exists_{?r: robot, ?loc: waypoint} [(put_down(?r, ?o) ^ goal_object_at(?o, ?loc))]) then true
+                else if (exists_{?r: robot, ?p: person} [(give(?r, ?o, ?p) ^ goal_object_with(?o, ?p))]) then true
+                else goal_attempted(?o);
+        
+        reward_received'(?o) =
+                if (exists_{?loc: waypoint} [(goal_attempted(?o) ^ object_at(?o, ?loc) ^ goal_object_at(?o, ?loc))]) then true
+                else if (exists_{?p: person} [(goal_attempted(?o) ^ object_with(?o, ?p) ^ goal_object_with(?o, ?p))]) then true
+                else reward_received(?o);
+ 
+        // PERSON_GOAL_OBJECT_AT'(?p, ?o, ?loc) = PERSON_GOAL_OBJECT_AT(?p, ?o, ?loc);
+        
+        // PERSON_GOAL_OBJECT_WITH'(?p, ?o, ?p1) = PERSON_GOAL_OBJECT_WITH(?p, ?o, ?p1);
+        
+        // PERSON_IS_AT'(?p, ?loc) = PERSON_IS_AT(?p, ?loc);
+    };
+
+    // reward = [sum_{?r: robot, ?loc1: waypoint, ?loc2: waypoint} [COST * move(?r, ?loc1, ?loc2)]] +
+    //          [sum_{?r: robot} [COST * localise(?r)]] +
+    //          [sum_{?r: robot, ?p: person} [COST * find_person(?r, ?p)]] +
+    //          [sum_{?r: robot, ?p: person} [COST * talk_to_person(?r, ?p)]] +
+    //          [sum_{?r: robot, ?o: obj} [COST * pick_up(?r, ?o)]] +
+    //          [sum_{?r: robot, ?o: obj} [COST * put_down(?r, ?o)]] +
+    //          [sum_{?r: robot, ?o: obj, ?p: person} [COST * take(?r, ?o, ?p)]] +
+    //          [sum_{?r: robot, ?o: obj, ?p: person} [COST * give(?r, ?o, ?p)]] +
+    //          [sum_{?o: obj} 
+    //              [ TASK_REWARD * (exists_{?loc: waypoint} [(~reward_received(?o) ^ object_at(?o, ?loc) ^ goal_object_at(?o, ?loc))]) +
+    //                TASK_REWARD * (exists_{?p: person, ?loc: waypoint} [(~reward_received(?o) ^ object_with(?o, ?p) ^ goal_object_with(?o, ?p))])
+    //              ]
+    //          ];
+
+    reward = [sum_{?r: robot} [COST]] +
+             [sum_{?o: obj} 
+                 [ TASK_REWARD * (exists_{?loc: waypoint} [(~reward_received(?o) ^ goal_attempted(?o) ^ object_at(?o, ?loc) ^ goal_object_at(?o, ?loc))]) +
+                   TASK_REWARD * (exists_{?p: person, ?loc: waypoint} [(~reward_received(?o) ^ goal_attempted(?o) ^ object_with(?o, ?p) ^ goal_object_with(?o, ?p))])
+                 ]
+             ];
+    
+    action-preconditions {
+        // each object can only have one goal (this does not enforce the CPF and can still be violated, when this happens, no state transition will happen)
+        // forall_{?o: obj} [ 
+        //     ( (sum_{?loc: waypoint} [goal_object_at(?o, ?loc)]) +    
+        //       (sum_{?p: person} [goal_object_with(?o, ?p)]) ) <= 1];
+
+        // forall_{?r: robot, ?loc: waypoint} [move(?r, ?loc) => (~robot_at(?r, ?loc) ^ localised(?r)) ];
+        forall_{?r: robot, ?loc1: waypoint, ?loc2: waypoint} [move(?r, ?loc1, ?loc2) => (robot_at(?r, ?loc1) ^ localised(?r))];
+        forall_{?r: robot} [localise(?r) => (~localised(?r))];
+        // in CoRL, only can find_person if person not found
+        forall_{?r: robot, ?p: person} [find_person(?r, ?p) => (~(exists_{?loc: waypoint} [person_at(?p, ?loc)]) ^ localised(?r)) ];
+        // forall_{?r: robot, ?p: person} [find_person(?r, ?p) => (localised(?r))];
+        forall_{?r: robot, ?p: person} [talk_to_person(?r, ?p) => (exists_{?loc: waypoint} [(robot_at(?r, ?loc) ^ person_at(?p, ?loc))] ) ];
+        // do not pick_up object if it is at goal
+        // forall_{?r: robot, ?o: obj, ?loc: waypoint} [pick_up(?r, ?o, ?loc) => (robot_at(?r, ?loc) ^ TABLE_AT(?loc) ^ object_at(?o, ?loc) ^ emptyhand(?r) ^ ~goal_attempted(?o)) ];
+        forall_{?r: robot, ?o: obj} [pick_up(?r, ?o) => (exists_{?loc: waypoint} [(robot_at(?r, ?loc) ^ TABLE_AT(?loc) ^ object_at(?o, ?loc) ^ emptyhand(?r) ^ ~goal_attempted(?o))] ) ];
+        // forall_{?r: robot, ?o: obj, ?loc: waypoint} [put_down(?r, ?o, ?loc) => (robot_at(?r, ?loc) ^ TABLE_AT(?loc) ^ holding(?r, ?o))];
+        forall_{?r: robot, ?o: obj} [put_down(?r, ?o) => (exists_{?loc: waypoint} [(robot_at(?r, ?loc) ^ TABLE_AT(?loc) ^ holding(?r, ?o))] ) ];
+        // do not take object away if it is with goal
+        forall_{?r: robot, ?o: obj, ?p: person} [take(?r, ?o, ?p) => (exists_{?loc: waypoint} [(robot_at(?r, ?loc) ^ person_at(?p, ?loc) ^ emptyhand(?r) ^ object_with(?o, ?p) ^ ~goal_attempted(?o))] ) ];
+        forall_{?r: robot, ?o: obj, ?p: person} [give(?r, ?o, ?p) => (exists_{?loc: waypoint} [(robot_at(?r, ?loc) ^ person_at(?p, ?loc) ^ holding(?r, ?o))] ) ];
+    };
+}

@@ -1,0 +1,61 @@
+domain grid_survey_mdp {
+    
+    types {
+        pos: object;
+        robot: object;
+        obj: object;
+    };
+
+    pvariables {
+        // Action costs and penalties
+        COST: {non-fluent, real, default = -1.0};
+        TASK_REWARD: {non-fluent, real, default = 20.0};
+
+        // Non-fluents        
+        //connecting up the locations
+        ADJACENT(pos, pos): {non-fluent, bool, default = false};
+        OBJECT_AT(obj, pos) : {non-fluent, bool, default = false};
+
+        // State fluents
+        robot_at(robot, pos): {state-fluent, bool, default = false};
+        object_found(obj) : {state-fluent, bool, default = false};
+        // reward_received(obj) : {state-fluent, bool, default = false};
+
+        // Action fluents
+        move(robot, pos): {action-fluent, bool, default = false};
+        survey(robot, pos): {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+        robot_at'(?r, ?loc) = 
+                if (move(?r, ?loc)) then true 
+                else if (exists_{?loc1 : pos} (move(?r, ?loc1))) then false
+                else robot_at(?r, ?loc);
+
+        object_found'(?o) =
+                if (exists_{?r: robot, ?loc: pos} [(survey(?r, ?loc) ^ OBJECT_AT(?o, ?loc))]) then true
+                else object_found(?o);
+
+        // reward_received'(?o) =
+        //         if (object_found(?o)) then true
+        //         else reward_received(?o);
+    };
+
+    // Define cost for every action so that PROST can consider noop() cost as zero
+    reward = [sum_{?r: robot, ?loc: pos} [COST * move(?r, ?loc)]] +
+             [sum_{?r: robot, ?loc: pos} [COST * survey(?r, ?loc)]] +
+             [sum_{?r: robot, ?o: obj, ?loc: pos} [TASK_REWARD * (survey(?r, ?loc) ^ OBJECT_AT(?o, ?loc) ^ ~object_found(?o))]];
+             //[sum_{?o: obj} [TASK_REWARD * (~reward_received(?o) ^ object_found(?o))]];
+
+    action-preconditions {
+        forall_{?r: robot, ?to: pos} [move(?r, ?to) => exists_{?from : pos} [(robot_at(?r, ?from) ^ (ADJACENT(?from, ?to) | ADJACENT(?to, ?from)))]];
+        
+        // A robot can not move to its current position
+        // forall_{?r: robot, ?loc1: pos, ?loc2: pos} [move(?r, ?loc1, ?loc2) => (?loc1 ~= ?loc2)];
+
+        // A robot can not be in two places at the same time
+        forall_{?r: robot, ?loc1: pos, ?loc2: pos} [?loc1 == ?loc2 | (robot_at(?r, ?loc1) => ~robot_at(?r, ?loc2))];
+        
+        forall_{?r: robot, ?loc: pos} [survey(?r, ?loc) => robot_at(?r, ?loc)]; 
+    };
+}

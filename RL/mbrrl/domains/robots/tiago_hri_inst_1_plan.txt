@@ -1,0 +1,12 @@
+// comments allowed!
+localise(r1)
+find_person(r1, p1)
+move(r1, wp0, wp4)
+talk_to_person(r1, p1)
+move(r1, wp4, wp1)
+pick_up(r1, o1, wp1)
+move(r1, wp1, wp2)
+put_down(r1, o1, wp2)
+pick_up(r1, o2, wp2)
+move(r1, wp2, wp4)
+give(r1, o2, p1)

@@ -1,0 +1,4 @@
+taxi_at :- move
+carrying :- pick_up; drop_off
+passenger_at :- pick_up; drop_off
+passenger_alighted :- drop_off

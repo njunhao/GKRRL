@@ -1,0 +1,53 @@
+non-fluents nf_grid_survey_inst_mdp__sq3 {
+    domain = grid_survey_mdp;
+    objects {
+        robot : {r1};
+        pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9};
+        obj : {o1, o3, o7, o9};
+    };
+    
+    non-fluents {
+        ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp4);
+        ADJACENT(wp2, wp3);
+        ADJACENT(wp2, wp5);
+        ADJACENT(wp3, wp6);
+        ADJACENT(wp4, wp5);
+        ADJACENT(wp4, wp7);
+        ADJACENT(wp5, wp6);
+        ADJACENT(wp5, wp8);
+        ADJACENT(wp6, wp9);
+        ADJACENT(wp7, wp8);
+        ADJACENT(wp8, wp9);
+
+        ADJACENT(wp2, wp1);
+        ADJACENT(wp4, wp1);
+        ADJACENT(wp3, wp2);
+        ADJACENT(wp5, wp2);
+        ADJACENT(wp6, wp3);
+        ADJACENT(wp5, wp4);
+        ADJACENT(wp7, wp4);
+        ADJACENT(wp6, wp5);
+        ADJACENT(wp8, wp5);
+        ADJACENT(wp9, wp6);
+        ADJACENT(wp8, wp7);
+        ADJACENT(wp9, wp8);
+
+        OBJECT_AT(o1, wp1);
+        OBJECT_AT(o3, wp3);
+        OBJECT_AT(o7, wp7);
+        OBJECT_AT(o9, wp9);
+    };
+}
+
+instance grid_survey_inst_mdp__sq3 {
+    domain = grid_survey_mdp;
+    non-fluents = nf_grid_survey_inst_mdp__sq3;
+    init-state {
+        robot_at(r1, wp5);
+    };
+
+    max-nondef-actions = 1;
+    horizon  = 20;
+    discount = 1.0;
+}

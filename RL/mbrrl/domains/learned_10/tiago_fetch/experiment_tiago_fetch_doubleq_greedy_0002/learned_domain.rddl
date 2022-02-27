@@ -1,0 +1,68 @@
+domain tiago_fetch_mdp {
+
+    types { 
+        obj : object;
+        robot : object;
+        waypoint : object;
+    };
+
+    pvariables {
+        TASK_REWARD : {non-fluent, real, default = 20.0};
+        COST : {non-fluent, real, default = -1.0};
+        PROB_LOSING_LOCALISATION(robot) : {non-fluent, real, default = 0};
+        PROB_DROP_OBJ(obj): {non-fluent, real, default = 0};
+        PROB_POOR_GRASP(obj): {non-fluent, real, default = 0};
+        OBJECT_GOAL(obj, waypoint) : {non-fluent, bool, default = false};
+
+        robot_at(robot, waypoint) : {state-fluent, bool, default = false};
+        localised(robot) : {state-fluent, bool, default = false};
+        emptyhand(robot) : {state-fluent, bool, default = false};
+        holding(robot, obj) : {state-fluent, bool, default = false};
+        poor_grasp(robot, obj) : {state-fluent, bool, default = false};
+        object_at(obj, waypoint) : {state-fluent, bool, default = false};
+
+        move(robot, waypoint) : {action-fluent, bool, default = false};
+        localise(robot) : {action-fluent, bool, default = false};
+        pick_up(robot, obj, waypoint) : {action-fluent, bool, default = false};
+        put_down(robot, obj, waypoint) : {action-fluent, bool, default = false};
+    };
+
+    cpfs {
+
+        robot_at'(?X, ?Y) = if (move(?X, ?Y)) then KronDelta(true) else if (robot_at(?X, ?Y)) then (Bernoulli (0.655401)) else robot_at(?X, ?Y);
+
+        localised'(?X) = if (localise(?X)) then KronDelta(true) else localised(?X);
+
+        emptyhand'(?X) = if (exists_{?Y: obj, ?Z: waypoint} [(put_down(?X, ?Y, ?Z))]) then KronDelta(true) else if (exists_{?Y: obj, ?Z: waypoint} [(pick_up(?X, ?Y, ?Z))]) then KronDelta(false) else emptyhand(?X);
+
+        poor_grasp'(?r, ?o) =
+                if (exists_{?loc: waypoint} [pick_up(?r, ?o, ?loc)]) then Bernoulli(PROB_POOR_GRASP(?o))
+                else if (exists_{?loc: waypoint} [put_down(?r, ?o, ?loc)]) then false
+                else if (~holding(?r, ?o)) then false
+                else poor_grasp(?r, ?o);
+
+        holding'(?Y, ?X) = if (exists_{?Z: waypoint} [(pick_up(?Y, ?X, ?Z))]) then KronDelta(true) else if (exists_{?Z: waypoint} [(put_down(?Y, ?X, ?Z))]) then KronDelta(false) else holding(?Y, ?X);
+
+
+        object_at'(?X, ?Y) = if (exists_{?Z: robot} [(put_down(?Z, ?X, ?Y))]) then KronDelta(true) else if (exists_{?Z: robot} [(pick_up(?Z, ?X, ?Y))]) then KronDelta(false) else object_at(?X, ?Y);
+    };
+
+
+    reward = [sum_{?o: obj} 
+                 [ TASK_REWARD * (exists_{?r: robot, ?loc: waypoint} [ (put_down(?r, ?o, ?loc) ^ OBJECT_GOAL(?o, ?loc)) ]) -
+                   TASK_REWARD * (exists_{?r: robot, ?loc: waypoint} [ (pick_up(?r, ?o, ?loc) ^ OBJECT_GOAL(?o, ?loc)) ])
+                 ]
+             ] +
+             [sum_{?r: robot, ?loc: waypoint} [COST * move(?r, ?loc)]] +
+             [sum_{?r: robot} [COST * localise(?r)]] +
+             [sum_{?r: robot, ?o: obj, ?loc: waypoint} [COST * pick_up(?r, ?o, ?loc)]] +
+             [sum_{?r: robot, ?o: obj, ?loc: waypoint} [COST * put_down(?r, ?o, ?loc)]];
+    
+    
+    action-preconditions {
+        forall_{?r: robot, ?loc: waypoint} [move(?r, ?loc) => (localised(?r) ^ ~robot_at(?r, ?loc))];
+        forall_{?r: robot, ?o: obj, ?loc: waypoint} [pick_up(?r, ?o, ?loc) => (robot_at(?r, ?loc) ^ object_at(?o, ?loc) ^ emptyhand(?r))];
+        forall_{?r: robot, ?o: obj, ?loc: waypoint} [put_down(?r, ?o, ?loc) => (robot_at(?r, ?loc) ^ holding(?r, ?o) ^ ~(exists_{?o1: obj} [object_at(?o1, ?loc)]) )];
+    };
+}
+

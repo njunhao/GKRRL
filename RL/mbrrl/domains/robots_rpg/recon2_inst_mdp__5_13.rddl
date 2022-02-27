@@ -1,0 +1,87 @@
+non-fluents nf_recon2_inst_mdp__5_13 {
+    domain = recon2_mdp; 
+    objects { 
+        pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9, wp10, wp11, wp12, wp13, wp14, wp15, wp16};
+        obj : {o0,o1,o2,o3,o4,o5};
+        agent : {a1};
+        tool : {l1,w1,p1};
+    }; 
+    non-fluents {
+        ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp5);
+        ADJACENT(wp2, wp3);
+        ADJACENT(wp2, wp6);
+        ADJACENT(wp3, wp4);
+        ADJACENT(wp3, wp7);
+        ADJACENT(wp4, wp8);
+        ADJACENT(wp5, wp6);
+        ADJACENT(wp5, wp9);
+        ADJACENT(wp6, wp7);
+        ADJACENT(wp6, wp10);
+        ADJACENT(wp7, wp8);
+        ADJACENT(wp7, wp11);
+        ADJACENT(wp8, wp12);
+        ADJACENT(wp9, wp10);
+        ADJACENT(wp9, wp13);
+        ADJACENT(wp10, wp11);
+        ADJACENT(wp10, wp14);
+        ADJACENT(wp11, wp12);
+        ADJACENT(wp11, wp15);
+        ADJACENT(wp12, wp16);
+        ADJACENT(wp13, wp14);
+        ADJACENT(wp14, wp15);
+        ADJACENT(wp15, wp16);
+
+        ADJACENT(wp2, wp1);
+        ADJACENT(wp5, wp1);
+        ADJACENT(wp3, wp2);
+        ADJACENT(wp6, wp2);
+        ADJACENT(wp4, wp3);
+        ADJACENT(wp7, wp3);
+        ADJACENT(wp8, wp4);
+        ADJACENT(wp6, wp5);
+        ADJACENT(wp9, wp5);
+        ADJACENT(wp7, wp6);
+        ADJACENT(wp10, wp6);
+        ADJACENT(wp8, wp7);
+        ADJACENT(wp11, wp7);
+        ADJACENT(wp12, wp8);
+        ADJACENT(wp10, wp9);
+        ADJACENT(wp13, wp9);
+        ADJACENT(wp11, wp10);
+        ADJACENT(wp14, wp10);
+        ADJACENT(wp12, wp11);
+        ADJACENT(wp15, wp11);
+        ADJACENT(wp16, wp12);
+        ADJACENT(wp14, wp13);
+        ADJACENT(wp15, wp14);
+        ADJACENT(wp16, wp15);
+
+        WATER_TOOL(w1);
+        LIFE_TOOL(l1);
+        CAMERA_TOOL(p1);
+        BASE(wp4);
+        OBJECT_AT(o0, wp3);
+        OBJECT_AT(o1, wp16);
+        OBJECT_AT(o2, wp5);
+        OBJECT_AT(o3, wp6);
+        OBJECT_AT(o4, wp14);
+        OBJECT_AT(o5, wp4);
+        HAZARD(wp12);
+        DAMAGE_PROB(w1) = 0.2766014;
+        DAMAGE_PROB(l1) = 0.32337266;
+        // GOOD_PIC_WEIGHT = 0.7984295;
+        // BAD_PIC_WEIGHT = 0.5658803;
+    };
+}
+instance recon2_inst_mdp__5_13 {
+    domain = recon2_mdp; 
+     non-fluents = nf_recon2_inst_mdp__5_13;
+    init-state { 
+        agentAt(a1, wp4);
+    };
+    max-nondef-actions = 1;
+    horizon = 50;
+    discount = 1.0;
+} 
+

@@ -1,0 +1,62 @@
+non-fluents nf_recon2_inst_mdp__4_2 {
+    domain = recon2_mdp; 
+    objects { 
+        pos : {wp1, wp2, wp3, wp4, wp5, wp6, wp7, wp8, wp9};
+        obj : {o0,o1,o2,o3,o4};
+        agent : {a1};
+        tool : {l1,w1,p1};
+    }; 
+    non-fluents {
+        ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp4);
+        ADJACENT(wp2, wp3);
+        ADJACENT(wp2, wp5);
+        ADJACENT(wp3, wp6);
+        ADJACENT(wp4, wp5);
+        ADJACENT(wp4, wp7);
+        ADJACENT(wp5, wp6);
+        ADJACENT(wp5, wp8);
+        ADJACENT(wp6, wp9);
+        ADJACENT(wp7, wp8);
+        ADJACENT(wp8, wp9);
+        
+        ADJACENT(wp2, wp1);
+        ADJACENT(wp4, wp1);
+        ADJACENT(wp3, wp2);
+        ADJACENT(wp5, wp2);
+        ADJACENT(wp6, wp3);
+        ADJACENT(wp5, wp4);
+        ADJACENT(wp7, wp4);
+        ADJACENT(wp6, wp5);
+        ADJACENT(wp8, wp5);
+        ADJACENT(wp9, wp6);
+        ADJACENT(wp8, wp7);
+        ADJACENT(wp9, wp8);
+
+        WATER_TOOL(w1);
+        LIFE_TOOL(l1);
+        CAMERA_TOOL(p1);
+        BASE(wp9);
+        OBJECT_AT(o0, wp6);
+        OBJECT_AT(o1, wp1);
+        OBJECT_AT(o2, wp4);
+        OBJECT_AT(o3, wp3);
+        OBJECT_AT(o4, wp5);
+        HAZARD(wp8);
+        DAMAGE_PROB(w1) = 0.42995942;
+        DAMAGE_PROB(l1) = 0.30572772;
+        // GOOD_PIC_WEIGHT = 0.15562552;
+        // BAD_PIC_WEIGHT = 0.69803196;
+    };
+}
+instance recon2_inst_mdp__4_2 {
+    domain = recon2_mdp; 
+     non-fluents = nf_recon2_inst_mdp__4_2;
+    init-state { 
+        agentAt(a1, wp9);
+    };
+    max-nondef-actions = 1;
+    horizon = 40;
+    discount = 1.0;
+} 
+

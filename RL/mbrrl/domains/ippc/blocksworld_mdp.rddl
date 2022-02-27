@@ -1,0 +1,61 @@
+domain blocksworld_mdp {
+	
+	requirements = { reward-deterministic };
+	
+	types {
+		block : object;
+	};
+	
+	pvariables {
+		GOAL_REWARD_ON: { non-fluent, real, default = 0.0 };
+		GOAL_REWARD_UNSTACK: { non-fluent, real, default = 0.0 };
+		GOAL_REWARD_STACK: { non-fluent, real, default = 0.0 };
+		COST: { non-fluent, real, default = 0.0 };
+
+		GOAL(block,block) : { non-fluent, bool, default = false };
+		
+		clear(block) : { state-fluent, bool, default = false };
+		on_table(block) : { state-fluent, bool, default = false };
+		on(block, block) : { state-fluent, bool, default = false };
+		
+		stack(block, block) : { action-fluent, bool, default = false };
+		unstack(block, block) : { action-fluent, bool, default = false };
+	};
+	
+	cpfs {
+		clear'(?block) =
+			if (exists_{?block2 : block} [stack(?block2, ?block)]) then false
+			else if (exists_{?block2: block} [unstack(?block2, ?block)]) then true
+			else if (exists_{?block2: block, ?block3: block} [stack(?block2, ?block3) ^ on(?block2, ?block)]) then true
+			else clear(?block);
+		
+		on_table'(?block) =
+			if (exists_{?block2 : block} [stack(?block, ?block2)]) then false
+			else if (exists_{?block2 : block} [unstack(?block, ?block2)]) then true
+			else on_table(?block);
+
+		on'(?block1, ?block2) =
+			if (unstack(?block1, ?block2)) then false
+			else if (stack(?block1, ?block2)) then true
+			else if (exists_{?block3: block} [stack(?block1, ?block3)]) then false
+			else on(?block1, ?block2);
+	};
+	
+	reward = [sum_{?block1 : block, ?block2 : block}
+				+(GOAL_REWARD_ON * [GOAL(?block1, ?block2) ^ on(?block1, ?block2)])
+				-COST*stack(?block1, ?block2)
+				-COST*unstack(?block1, ?block2)
+			]
+			+ (GOAL_REWARD_STACK * [exists_{?block1 : block} [ on_table(?block1) ^ ~exists_{?block2 : block} (?block1 ~= ?block2 ^ on_table(?block2))]])
+			+ (GOAL_REWARD_UNSTACK * [~exists_{?block1 : block, ?block2 : block} [on(?block1, ?block2)]]);
+		
+	state-action-constraints {
+		forall_{?block : block} [~on(?block, ?block)];
+	};
+
+    action-preconditions {
+        forall_{?block1 : block, ?block2 : block} [stack(?block1, ?block2) => (clear(?block1) ^ clear(?block2))];
+        forall_{?block1 : block, ?block2 : block} [unstack(?block1, ?block2) => (clear(?block1) ^ on(?block1, ?block2))];
+    };
+
+}

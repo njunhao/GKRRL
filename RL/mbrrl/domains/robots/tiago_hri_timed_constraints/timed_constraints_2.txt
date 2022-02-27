@@ -1,0 +1,8 @@
+# Format (all durations in seconds, if start_time is < 0, then it is a dynamic goal with start_time = time of activation):
+#		start_time: (action_or_state_fluent_name arg1 arg2)  [duration]
+#		Max Makespan = max_mission_time
+#
+-1: (object_at o1 wp2) [120]
+-1: (object_with o2 p1) [120]
+-1: (object_at o3 wp5) [120]
+-1: (object_at o4 wp8) [120]

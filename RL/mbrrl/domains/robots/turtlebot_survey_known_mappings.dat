@@ -1,0 +1,10 @@
+robot_at :- move
+undocked :- dock; undock
+docked :- dock; undock
+localised :- localise; move
+object_found :- survey
+object_inspected :- inspect_object
+object_info_received :- transmit_info
+camera_calibrated :- calibrate_camera
+has_energy :- dock
+low_energy :- move

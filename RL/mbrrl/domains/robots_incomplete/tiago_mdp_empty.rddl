@@ -1,0 +1,53 @@
+domain tiago_mdp {
+	types { 
+		obj : object;
+		person : object;
+		robot : object;
+		waypoint : object;
+	};
+
+	pvariables {
+		WEIGHT : {non-fluent, real, default = 5};
+		PROB_LOSING_LOCALISATION : {non-fluent, real, default = 0.1};
+
+		robot_at(robot, waypoint) : {state-fluent, bool, default = false};
+		localised(robot) : {state-fluent, bool, default = false};
+		emptyhand(robot) : {state-fluent, bool, default = false};
+		holding(robot, obj) : {state-fluent, bool, default = false};
+		person_at(person, waypoint) : {non-fluent, bool, default = false};
+		object_at(obj, waypoint) : {state-fluent, bool, default = false};
+		object_with(obj, person) : {state-fluent, bool, default = false};
+		person_found(person) : {state-fluent, bool, default = false};
+		task_received(person) : {state-fluent, bool, default = false};
+		// person_satisfied(person) : {state-fluent, bool, default = false};
+		task_completed(person) : {state-fluent, bool, default = false};
+		reward_received(person) : {state-fluent, bool, default = false};
+
+		move(robot, waypoint, waypoint) : {action-fluent, bool, default = false};
+		localise(robot) : {action-fluent, bool, default = false};
+		find_person(robot, person) : {action-fluent, bool, default = false};
+		talk_to_person(robot, person, waypoint) : {action-fluent, bool, default = false};
+		pick_up(robot, obj, waypoint) : {action-fluent, bool, default = false};
+		put_down(robot, obj, waypoint) : {action-fluent, bool, default = false};
+		take(robot, obj, person, waypoint) : {action-fluent, bool, default = false};
+		give(robot, obj, person, waypoint) : {action-fluent, bool, default = false};
+	};
+
+	cpfs {
+		robot_at'(?r, ?loc) = robot_at(?r, ?loc);
+		localised'(?r) = localised(?r);
+		emptyhand'(?r) = emptyhand(?r);
+		holding'(?r, ?o) = holding(?r, ?o);
+		person_at'(?o, ?loc) = person_at(?o, ?loc);
+		object_at'(?o, ?loc) = object_at(?o, ?loc);
+		object_with'(?o, ?p) = object_with(?o, ?p);
+		person_found'(?p) = person_found(?p);
+		task_received'(?p) = task_received(?p);
+		task_completed'(?p) = task_completed(?p);
+		// person_satisfied'(?p) = person_satisfied(?p);
+		reward_received'(?p) = reward_received(?p);
+	};
+
+	// reward = [sum_{?p: person} [WEIGHT * (person_satisfied(?p) ^ ~reward_received(?p))]];
+	reward = [sum_{?p: person} [WEIGHT * (task_completed(?p) ^ ~reward_received(?p))]];
+}

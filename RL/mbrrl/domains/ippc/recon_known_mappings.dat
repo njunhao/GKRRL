@@ -1,0 +1,8 @@
+damaged :- repair
+waterChecked :- useToolOn
+waterDetected :- useToolOn
+lifeChecked :- useToolOn
+lifeChecked2 :- useToolOn
+lifeDetected :- useToolOn
+pictureTaken :- useToolOn
+agentAt :- up; down; left; right

@@ -1,0 +1,50 @@
+non-fluents nf_robot_inspection_inst_mdp__1_2 {
+    domain = robot_inspection_mdp;
+    objects {
+        robot : {r1};
+        pos : {wp1, wp2, wp3, wp4};
+        obj : {o0, o1, o2, o3};
+    };
+    
+    non-fluents {
+        // COST = -1.0;
+        // PROB_DAMAGE = 0.5;
+        // PROB_SUCCESSFUL_SURVEY = 1.0;
+        // PROB_SUCCESSFUL_OBSERVATION = 1.0;
+        // PROB_SUCCESSFUL_SURVEY_DAMAGED = 0.2;
+        // PROB_SUCCESSFUL_OBSERVATION_DAMAGED = 0.9;
+
+        ADJACENT(wp1, wp2);
+        ADJACENT(wp1, wp3);
+        ADJACENT(wp2, wp4);
+        ADJACENT(wp3, wp4);
+
+        ADJACENT(wp2, wp1);
+        ADJACENT(wp3, wp1);
+        ADJACENT(wp4, wp2);
+        ADJACENT(wp4, wp3);
+
+        HAZARD(wp1, wp3);
+        
+        HAZARD(wp3, wp1);
+
+        BASE(wp4);              // initial state cannot be at the base, too simple
+        COMM_TOWER(wp1);
+        OBJECT_AT(o0, wp2);
+        OBJECT_AT(o1, wp4);
+        OBJECT_AT(o2, wp1);
+        OBJECT_AT(o3, wp3);
+    };
+}
+
+instance robot_inspection_inst_mdp__1_2 {
+    domain = robot_inspection_mdp;
+    non-fluents = nf_robot_inspection_inst_mdp__1_2;
+    init-state {
+        robot_at(r1, wp1);
+    };
+
+    max-nondef-actions = 1;
+    horizon  = 40;
+    discount = 1.0;
+}

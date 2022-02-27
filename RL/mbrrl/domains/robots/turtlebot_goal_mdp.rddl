@@ -1,0 +1,106 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// A domain for turtlebot exploration, demo for ROSPlan.
+//
+// Author: Gerard Canal (gcanal@iri.upc.edu)
+// 
+// Based on the demo domain for the turtlebot.
+// Thanks to Florian Geißer, Thomas Keller and Scott Sanner for the help.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+domain turtlebot_goal_mdp {
+    
+    types {
+        waypoint: object;
+        robot: object;
+    };
+
+    pvariables {
+        // Action costs and penalties
+        COST_MOVE(robot):  {non-fluent, real, default = -1};
+        VISIT_WP_REWARD:   {non-fluent, real, default = 10};
+
+        // Non-fluents
+        DOCK_AT(waypoint): { non-fluent, bool, default = false };
+
+
+        // State fluents
+        robot_at(robot, waypoint): { state-fluent, bool, default = false };
+        visited(waypoint): { state-fluent, bool, default = false };
+        undocked(robot): { state-fluent, bool, default = false };
+        docked(robot): { state-fluent, bool, default = false };
+        localised(robot): { state-fluent, bool, default = false };
+        goal_reached: { state-fluent, bool, default = false };
+
+        // Action fluents
+        move(robot, waypoint, waypoint): { action-fluent, bool, default = false }; // robot from to
+        localise(robot): { action-fluent, bool, default = false };
+        dock(robot, waypoint): { action-fluent, bool, default = false };
+        undock(robot, waypoint): { action-fluent, bool, default = false };
+    };
+
+    cpfs {
+
+        robot_at'(?r, ?loc) = if (exists_{?loc1: waypoint} (move(?r, ?loc1, ?loc))) then true 
+                            else if (exists_{?loc1: waypoint} (move(?r, ?loc, ?loc1))) then false
+                            else robot_at(?r, ?loc);
+
+        visited'(?loc) = visited(?loc) | (exists_{?r:robot, ?loc1: waypoint} (move(?r, ?loc1, ?loc)));
+        //visited'(?loc) = visited(?loc) | exists_{?r:robot} (robot_at(?r, ?loc));
+
+        undocked'(?r) = undocked(?r) ^ ~(exists_{?loc: waypoint} (dock(?r, ?loc))) | docked(?r) ^ (exists_{?loc: waypoint} (undock(?r, ?loc)));
+
+        docked'(?r) = docked(?r) ^ ~(exists_{?loc: waypoint} (undock(?r, ?loc))) | undocked(?r) ^ (exists_{?loc: waypoint} (dock(?r, ?loc)));
+
+        localised'(?r) = localised(?r) | localise(?r);
+
+        goal_reached' = forall_{?loc: waypoint} (visited(?loc));
+    };
+
+    // Goal is to visit all the waypoints, so we get reward for visiting them, but moving has a cost!
+    // reward = [sum_{?r: robot, ?from: waypoint, ?to: waypoint} [COST_MOVE(?r)*move(?r, ?from, ?to)]] +
+    //          [sum_{?loc: waypoint} [VISIT_WP_REWARD*visited(?loc)]];
+    // reward = if (goal_reached) then 0
+    //          else if (forall_{?loc: waypoint} (visited(?loc))) then [sum_{?loc: waypoint} (VISIT_WP_REWARD)]
+    //          else [sum_{?r: robot, ?from: waypoint, ?to: waypoint} [COST_MOVE(?r)*move(?r, ?from, ?to)]];
+    reward = if (goal_reached) then 0
+             else if (forall_{?loc: waypoint} (visited(?loc))) then [(VISIT_WP_REWARD)]
+             else [sum_{?r: robot} COST_MOVE(?r)];
+
+
+    //state-action-constraints {
+    action-preconditions {
+
+        // A robot must be undocked, localised and in a position to move to another
+        forall_{?r: robot, ?from: waypoint, ?to: waypoint} [move(?r, ?from, ?to) => (robot_at(?r, ?from) ^ localised(?r) ^ undocked(?r))];
+        
+        // A robot can not move to its current position
+        forall_{?r: robot, ?from: waypoint, ?to: waypoint} [move(?r, ?from, ?to) => (?from ~= ?to)];
+
+        // A robot can not be in two places at the same time
+        forall_{?r: robot, ?loc1: waypoint, ?loc2: waypoint} [?loc1 == ?loc2 | (robot_at(?r, ?loc1) => ~robot_at(?r, ?loc2))];
+
+        // Robot must be undocked to localise
+        forall_{?r: robot} [localise(?r) => undocked(?r) ^ ~localised(?r)];
+
+        // Robot must be docked to undock and vice-versa -> note: as we're using ?loc here, we must enforce the DOCK_AT to avoid instantiations of dock with wrong waypoints
+        forall_{?r: robot, ?loc: waypoint} [dock(?r, ?loc) => (undocked(?r) ^ DOCK_AT(?loc) ^ robot_at(?r, ?loc))];
+        forall_{?r: robot, ?loc: waypoint} [undock(?r, ?loc) => (docked(?r) ^ DOCK_AT(?loc) ^ robot_at(?r, ?loc))];
+
+        // Max 1 action
+        forall_{?r: robot} [
+            (localise(?r) + 
+            (sum_{?from: waypoint, ?to: waypoint} [move(?r, ?from, ?to)]) +    
+            (sum_{?loc: waypoint} [dock(?r, ?loc)]) + 
+            (sum_{?loc: waypoint} [undock(?r, ?loc)]) ) <= 1];
+    };
+
+    state-invariants {
+
+        // Robot can't be docked and undocked at the same time
+        forall_{?r: robot} [docked(?r) <=> ~undocked(?r)];
+
+    };
+}

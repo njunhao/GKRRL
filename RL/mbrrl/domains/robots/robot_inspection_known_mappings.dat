@@ -1,0 +1,6 @@
+robot_at :- move
+object_found :- survey
+object_inspected :- inspect_object
+object_info_received :- transmit_info
+camera_damaged :- calibrate_camera; move
+camera_calibrated :- calibrate_camera

@@ -1,0 +1,157 @@
+////////////////////////////////////////////////////////////////////
+// Reconnaissance domain (contains elements of Rock Sample / Mars Rover domains)
+//
+// Author: Tom Walsh (thomasjwalsh [at] gmail.com)
+//
+// In the reconnaissance MDP, there is a 2d grid with an agent, 
+// a base, some hazard squares, and objects in different locations.
+// The agent is equipped with 3 tools, one for detecting water, one for detecting
+// life, and one for taking a picture.  The agent's movements are deterministic
+// but the probability of getting a good reading from the life and water sensors 
+// are stochastic.  Plus, running into a hazard OR being an adjacent square to one,
+// has a probability of damaging each sensor, which causes their false negative
+// rate to increase dramatically.  If the agent returns to the base it can repair
+// each tool individually.
+//
+// In the MDP version, when tools report a negative result, they contaminate the 
+// object they were used on.  With the water tool, one negative result 
+// means water will never be detected on that object, and 2 negative 
+// results from the life detector similarly contaminates an object. 
+// Hence, there is a strong reason not to use damaged tools.  Positive reward is 
+// given for taking pictures of objects where life was detected and negative
+// reward is given for pictures where life has not been detected.
+//
+// The major planning decisions in this domain are:
+// 1) Choosing which objects to try the tools on.  
+// 2) Whether or not to repair the tools.
+// 3) Whether or not to risk damage to the tools by moving through hazards.
+//
+// This domain contains elements of the Rock Sample and Mars Rover domains:
+//
+// * Mars Rover reference:
+//
+//   John L. Bresina, Richard Dearden, Nicolas Meuleau, Sailesh Ramkrishnan, 
+//   David E. Smith, Richard Washington: Planning under Continuous Time and 
+//   Resource Uncertainty: A Challenge for AI. UAI 2002: 77-84.
+//   http://ti.arc.nasa.gov/static/asanicms/pub-archive/archive/2002-0339.pdf
+// 
+// * Rock Sample reference:
+//
+//   Trey Smith and Reid G. Simmons: Heuristic Search Value Iteration for 
+//   POMDPs.  UAI 2004.  http://www.cs.cmu.edu/~trey/papers/smith04_hsvi.pdf
+//
+////////////////////////////////////////////////////////////////////
+
+domain recon2_mdp {
+    
+    requirements = { 
+//      constrained-state,
+        reward-deterministic  
+    };
+
+    types { 
+        pos : object;
+        obj : object;
+        agent: object;
+        tool : object;
+    };
+
+    pvariables { 
+
+        COST: {non-fluent, real, default = -1.0};
+    
+        // connecting up the locations
+        ADJACENT(pos, pos)   : { non-fluent, bool, default = false };
+
+        // whether or not an object is at a location
+        OBJECT_AT(obj, pos) : { non-fluent, bool, default = false };
+        
+        // whether this locaion is a hazard (might damage the tools)
+        HAZARD(pos) : { non-fluent, bool, default = false };
+
+        // probability of the tool being damaged, and its detection capabilities, without and with damage
+        DAMAGE_PROB(tool):   { non-fluent, real, default = 0.0 };
+        DETECT_PROB:         { non-fluent, real, default = 1.0 };  // original value = 0.8
+        DETECT_PROB_DAMAGED: { non-fluent, real, default = 0.4 };
+        
+        // types of tools
+        CAMERA_TOOL(tool) : { non-fluent, bool, default = false };
+        LIFE_TOOL(tool)   : { non-fluent, bool, default = false };
+        WATER_TOOL(tool)  : { non-fluent, bool, default = false };
+
+        // Base where you can repair the tools
+        BASE(pos): { non-fluent, bool, default = false };
+
+        // weights for the reward function, good pics are one where you detected life, bad pics are where you did not
+        GOOD_PIC_WEIGHT : { non-fluent, real, default = 20.0 };  // original value = 1
+        BAD_PIC_WEIGHT  : { non-fluent, real, default = 20.0 };  // original value = 2
+
+        damaged(tool) : { state-fluent, bool, default = false };
+        
+        // after you check for water once, there is the observation you will always get back 
+        // you can think of the test as contaminating the sampled object
+        waterChecked(obj)  : { state-fluent, bool, default = false };
+        waterDetected(obj) : { state-fluent, bool, default = false };
+
+        // rechecking for life might be needed as the test is unreliable
+        //again, the test is contaminating, but only after the second try
+        lifeChecked(obj)  : { state-fluent, bool, default = false };
+        lifeChecked2(obj) : { state-fluent, bool, default = false };
+        lifeDetected(obj) : { state-fluent, bool, default = false };
+
+        pictureTaken(obj) : { state-fluent, bool, default = false };
+        agentAt(agent, pos) : { state-fluent, bool, default = false };
+
+        // actions
+        move(agent, pos) : {action-fluent, bool, default = false};
+        useToolOn(agent, tool, obj) : {action-fluent, bool, default = false};
+        repair(agent, tool) : {action-fluent, bool, default = false};
+    };
+  
+    cpfs {
+      agentAt'(?X, ?Y) = if (move(?X, ?Y)) then KronDelta(true) else if (move(?X, ?Y) ^ agentAt(?X, ?Y)) then (Bernoulli (0.537978)) else agentAt(?X, ?Y);
+      damaged'(?X) = if (exists_{?Y: agent} [(repair(?Y, ?X) ^ damaged(?X))]) then (Bernoulli (0.752212)) else damaged(?X);
+      lifeChecked'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ LIFE_TOOL(?Z) ^ ~lifeChecked(?X) ^ ~lifeChecked2(?X))]) then (Bernoulli (0.720968)) else lifeChecked(?X);
+      lifeChecked2'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ LIFE_TOOL(?Z) ^ lifeChecked(?X) ^ ~lifeChecked2(?X))]) then (Bernoulli (0.797002)) else lifeChecked2(?X);
+      lifeDetected'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ LIFE_TOOL(?Z) ^ ~lifeChecked2(?X) ^ ~lifeDetected(?X) ^ waterDetected(?X))]) then (Bernoulli (0.731481)) else lifeDetected(?X);
+      pictureTaken'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ CAMERA_TOOL(?Z) ^ ~damaged(?Z) ^ ~pictureTaken(?X))]) then (Bernoulli (0.705752)) else pictureTaken(?X);
+      waterChecked'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ WATER_TOOL(?Z) ^ ~waterChecked(?X) ^ ~waterDetected(?X))]) then (Bernoulli (0.573009)) else waterChecked(?X);
+      waterDetected'(?X) = if (exists_{?Y: agent, ?Z: tool} [(useToolOn(?Y, ?Z, ?X) ^ WATER_TOOL(?Z) ^ ~waterChecked(?X) ^ ~waterDetected(?X))]) then (Bernoulli (0.315686)) else waterDetected(?X);
+    };
+        
+    // we may want to change the way lifeDetected works because right now the same domain has different possible rewards
+    // Only get rewarded for a good or bad picture the first time the action is *taken*
+    // reward = [sum_{?o : obj}  
+    //           (GOOD_PIC_WEIGHT * 
+    //            [ ~pictureTaken(?o) ^ lifeDetected(?o) ^ exists_{?a: agent, ?t: tool} [useToolOn(?a, ?t, ?o) ^ CAMERA_TOOL(?t) ^ ~damaged(?t)]])
+    //       ] +
+    //       [sum_{?o : obj} 
+    //           -(BAD_PIC_WEIGHT * 
+    //            [ ~lifeDetected(?o) ^ exists_{?a: agent, ?t: tool} [useToolOn(?a, ?t, ?o) ^ CAMERA_TOOL(?t)]])
+    //       ];
+
+    reward = [sum_{?a: agent, ?loc: pos} [COST * move(?a, ?loc)]] +
+             [sum_{?a: agent, ?t: tool, ?o : obj} [COST * useToolOn(?a, ?t, ?o)]] +
+             [sum_{?a: agent, ?t: tool} [COST * repair(?a, ?t)]] +
+             [sum_{?o : obj}  
+                 (GOOD_PIC_WEIGHT * 
+                  [ ~pictureTaken(?o) ^ lifeDetected(?o) ^ exists_{?a: agent, ?t: tool} [useToolOn(?a, ?t, ?o) ^ CAMERA_TOOL(?t) ^ ~damaged(?t)]])
+             ] +
+             [sum_{?o : obj} 
+                 -(BAD_PIC_WEIGHT * 
+                  [ ~lifeDetected(?o) ^ exists_{?a: agent, ?t: tool} [useToolOn(?a, ?t, ?o) ^ CAMERA_TOOL(?t)]])
+             ]; 
+
+
+//  // only 1 of each kind of tool -- actually might be more fun if there were multiple of each one     
+//  state-action-constraints {
+//      (sum_{?t: tool}[WATER_TOOL(?t)])  >= 1;
+//      (sum_{?t: tool}[CAMERA_TOOL(?t)]) >= 1;
+//      (sum_{?t: tool}[LIFE_TOOL(?t)])   >= 1;
+//  };
+
+    action-preconditions {
+        forall_{?a: agent, ?to: pos} [move(?a, ?to) => (exists_{?from : pos} [(agentAt(?a, ?from) ^ (ADJACENT(?from, ?to) | ADJACENT(?to, ?from)))])];
+        forall_{?a: agent, ?t: tool, ?o: obj} [useToolOn(?a, ?t, ?o) => (exists_{?loc : pos} [(agentAt(?a, ?loc) ^ OBJECT_AT(?o, ?loc))])];
+    };
+}

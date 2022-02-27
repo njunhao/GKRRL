@@ -1,0 +1,8 @@
+damaged :- move
+waterChecked  :- useToolOn
+waterDetected :- useToolOn
+lifeChecked  :- useToolOn
+lifeChecked2 :- useToolOn
+lifeDetected :- useToolOn
+pictureTaken :- useToolOn
+agentAt :- move

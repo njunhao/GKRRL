@@ -8,4 +8,4 @@ service_robot					tiago_hri
 
 
 
-The binary is in /run_mbrrl/RL/mbrrl/src/mbrrl.zip. Extract it at the same directory.
+The binary is in /run_mbrrl/RL/mbrrl/src/mbrrl.zip. Extract it to the same directory.

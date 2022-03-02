@@ -408,16 +408,8 @@ best_function_approximation = {
 
 
 ############   TRANSFER LEARNING   ############
-if 'nalvin' in exp_utils.working_path:
-    import_knowledge_folder = '/home/nalvin/rrl/Results/small-scale-policy/*/'
-    import_knowledge_folder_lfd = '/home/nalvin/rrl/Results/small-scale-lfd/*/'
-elif '/home/alvin' in exp_utils.working_path:
-    import_knowledge_folder = '/home/alvin/rrl/Results/small-scale-policy/*/'
-    import_knowledge_folder_lfd = '/home/alvin/rrl/Results/small-scale-lfd/*/'
-else:
-    import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/small-scale-policy/*/'
-    import_knowledge_folder_lfd = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/small-scale-lfd/*/'
-
+import_knowledge_folder = '/'
+import_knowledge_folder_lfd .= './'
 if transfer_lfd:
     TRANSFER = [('import_qvalue', 'qvalue_approximation.dat'), ('epsilon', 0.2), ('import_knowledge_folder', [import_knowledge_folder]+[import_knowledge_folder_lfd])]
     client_args['import_knowledge_folder'] = exp_utils.append_list(client_args['import_knowledge_folder'], import_knowledge_folder_lfd)

@@ -31,8 +31,6 @@ else:
     raise("Unable to determine library path, current directory is " + os.getcwd())
 working_path = mbrrl_path
 # set directory for writing files to during experiment, set to /scratch if running batch experiments on a server
-if 'nalvin' in working_path:
-    working_path = '/scratch/nalvin/'
 
 
 # ----- SETTINGS ----- #
@@ -344,8 +342,7 @@ options = {
     'initial_domains': ['empty', 'approx', 'true'],                         # may have more types, see domains_utils.py
     'multi_planning': [None, 'safe', 'best', 'common', 'semihybrid', 'hybrid', 'linear-semihybrid', 'linear-hybrid'],
     'intrinsic_reward_types': [None, "rmax", "visit_count", "model_learner", "td_error", "delta_td_error", "goal_trajectory", "dowham", "first_order_explore", "first_order_target"],
-    'benchmark_dir': ['/media/alvin/HDD/Academics/PhD/Coding/ROS/ROSPlan/src/rosplan/rosplan_ilm/common/',
-                      mbrrl_path + '/domains/experiments']
+    'benchmark_dir': ['', mbrrl_path + '/domains/experiments']
 }
 options['problems'] = options['problems_ippc'] + options['problems_robot'] 
 

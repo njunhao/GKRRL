@@ -1,4 +1,0 @@
-#!/bin/bash
-/media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/external/prost/simple-rddl-parser /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results/parser_in_20196.rddl /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results/parser_out_20196 > /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results/rddl_parser_output.txt
-
-# /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/external/prost/rddl-parser-release /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results/parser_in_20196.rddl /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results/parser_out_20196 > /media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results/rddl_parser_output.txt

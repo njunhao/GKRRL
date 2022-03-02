@@ -184,7 +184,7 @@ Problem instance names are different from the dissertation.
 In dissertation (repository):
 - robot_fetch (tiago_fetch)
     - 1 (d1)
--- 2 (d2)
+    - 2 (d2)
 - robot_inspection (turtlebot_survey)
     - 1 (de2)
     - 2 (de4)

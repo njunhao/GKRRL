@@ -22,7 +22,7 @@ elif os.getcwd().find('/mbrrl') >= 0:
 else:
     raise("Unable to determine library path, current directory is " + os.getcwd())
 
-DOMAINS = ['tiago_hri', 'taxi', 'grid_survey', 'robot_inspection', 'recon2', 'orca_inspection', 'husky_inspection', 'turtlebot', 'turtlebot_goal', 'turtlebot_survey', 'tiago', 'tiago_fetch', 'triangle_tireworld', 'crossing_traffic', 'elevators', 'game_of_life', 'navigation', 'academic_advising', 'wildfire', 'recon', 'skill_teaching', 'tamarisk', 'sysadmin']
+DOMAINS = ['tiago_hri', 'taxi', 'grid_survey', 'robot_inspection', 'recon2', 'orca_inspection', 'husky_inspection', 'turtlebot', 'turtlebot_goal', 'turtlebot_survey', 'tiago', 'tiago_fetch', 'triangle_tireworld', 'crossing_traffic', 'elevators', 'game_of_life', 'navigation', 'academic_advising', 'wildfire', 'recon', 'skill_teaching', 'tamarisk', 'sysadmin', 'blocksworld']
 settings = {}
 
 ############## CHOOSE PROPERTIES OF EXPERIMENTS TO ANALYSE ##############
@@ -86,15 +86,15 @@ settings['plot_options'] = []
 #       VALUE: print last value of metric for each experiment
 # settings['plot_options'].append(['terminal_state', 'cumsum', 'value'])
 # settings['plot_options'].append(['execution_timestamp', 'value'])
-settings['plot_options'].append(['rewards', 'terminal', 'value'])
+# settings['plot_options'].append(['rewards', 'terminal', 'value'])
 
 #       CROSS: each figure compares experiments with the same values for settings['grouping_keys']
 settings['is_rpg'] = False            # settings['is_rpg'] = True to disable grouping by instances when plotting 'cross'
-# settings['plot_options'].append(['computation_time_per_round', 'cumsum', 'cross'])
+settings['plot_options'].append(['computation_time_per_round', 'cumsum', 'cross'])
 # settings['plot_options'].append(['execution_timestamp', 'cross'])
 # settings['plot_options'].append(['original_rewards', 'terminal', 'cross'])
 settings['plot_options'].append(['rewards', 'terminal', 'cross'])
-# settings['plot_options'].append(['num_features_per_round', 'cross'])
+settings['plot_options'].append(['num_features_per_round', 'cross'])
 settings['plot_options'].append(['terminal_state', 'cumsum', 'cross'])
 
 # settings['plot_options'].append(['succ_exec', 'cumsum', 'cross'])

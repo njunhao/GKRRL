@@ -38,7 +38,6 @@ problems = [('robot_inspection', 3),      ('robot_inspection', 5),      ('recon2
             ('tiago_hri', 1),             ('tiago_hri', 2),             ('tiago_hri', 3),                                           # 16,17,18
             ('blocksworld', 'unstack5'),  ('blocksworld',  'stack5'),   ('blocksworld', 'on5'),                                     # 19,20,21
             ('blocksworld', 'unstack10'), ('blocksworld',  'stack10'),  ('blocksworld', 'on10')]                                    # 22,23,24
-# problems = [('recon', 3), ('recon',  6)]
 
 # ----- MODEL -----
 model_representations = ['list']
@@ -302,12 +301,12 @@ setting_choice        = 'kr_best'
 # setting_choice        = 'prl_dyna_learned'
 # setting_choice        = 'transfer-learning'
 # setting_choice        = 'transfer-learning_dyna_learned'
-# setting_choice        = 'knowledge-transfer_dev'
+# setting_choice        = 'knowledge-transfer'
 # setting_choice        = 'intrinsic'
 # setting_choice        = 'dyna_best_learned'
-# setting_choice        = 'uct_true_dev'
-# setting_choice        = 'mmp_dbn_transfer_best_true_dev'
-# setting_choice        = 'mmp_dbn_transfer_best_true_dual_dev'
+# setting_choice        = 'uct_true'
+# setting_choice        = 'mmp_dbn_transfer_best_true'
+# setting_choice        = 'mmp_dbn_transfer_best_true_dual'
 # setting_choice        = 'mmp_dbn_transfer_best_learned'
 # setting_choice        = 'mmp_dbn_transfer_best_learned_dual'
 # setting_choice        = 'ros_transfer-learning_diff'
@@ -372,9 +371,6 @@ client_args['intrinsic_reward_coefficent_decay'] = 1.0
 ############   MODEL-BASED   ############
 MBFS = 'cpf_3'                                          # CPF3 for Tiago HRI, CPF2 for others
 lfa_mbfs_parameters = '101000000'                       # include precond and reward cpf (for Tiago Fetch) (final version used, best config)
-# lfa_mbfs_parameters = '100010000'                       # include precond and co-parents of sf (for Academic Advising & Turtlebot-Survey)
-# lfa_mbfs_parameters = '101010000'                       # include precond, co-parents of sf, and reward cpf (for Academic Advising & Turtlebot-Survey)
-# lfa_mbfs_parameters = '100000000'                       # include precond (for other domains)
 MQTE = [('mqte_horizon', 3)]
 MVE = [('mve_horizon', 3)]
 REXP = [('experience', 'relational')]
@@ -656,40 +652,6 @@ description = 'description: ' + setting_choice
 # ----- EXPERIMENTS ----- #
 setting_choice = setting_choice.split('_')
 
-if 'dev' in setting_choice:
-    # model_representations = ['dbn']
-    # policies = ['greedy']
-    # plan_rollouts = [('best', 3, 3, 12)]
-    # client_args['plans_file'] = '/media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/domains/robots/tiago_hri_inst_1_plan.txt'
-    # client_args['timed_constraints'] = '/media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/domains/robots/tiago_hri_timed_constraints'
-    num_reps = 1
-    num_rounds = 50
-    # client_args['max_loop_size'] = 0
-    # client_args['rollout_horizon'] = 5                     # Maximum simulation depth (UCT) (must simulate till end unless using Q-function)
-    # client_args['policy_rollout_horizon'] = 5               # Simulation rollout length using policy generated from Q-function instead of random policy
-    # import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/large-scale-policy/HRI-3/*/'
-    # import_knowledge_folder = '/home/nalvin/rrl/Results/large-scale-policy/HRI-3/*/'
-    # TRANSFER = [('import_qvalue', 'qvalue_approximation.dat'), ('epsilon', 0.2), ('import_knowledge_folder', import_knowledge_folder)]
-    # DUAL0 = [('dual', 0), ('planner', 'dual-doubleq')] + TRANSFER
-    # DUAL1 = [('dual', 1), ('planner', 'dual-doubleq')] + TRANSFER
-    # problems = [
-    #     ('tiago_hri', 1),
-    #     ('recon2', 3),
-    #     ('academic_advising', 3),
-    #     ('triangle_tireworld', 3),
-    #     ('turtlebot_survey', 'de2'),
-    #     ('tiago_fetch', 'd1')
-    # ]
-    # # client_args['use_model_for_app_actions'] = False    # Recommended value = True (i.e., preconditions are known)
-    # client_args['fix_rddl_domain'] = True
-    client_args['verbose_state'] = 2              # 0: no print, 1: print state vector, [2]: print true state fluents, 3: print all state fluents
-    client_args['verbose_action'] = 2             # 0: no print, [1]: print Q-values of applicable actions, 2: print Q-values for model-based and model-free
-    # client_args['verbose_step'] = 2               # 0: no print, [1]: print applicable actions / policy / Q-function step-update, 2: print details of applicable actions / policy, and 3: print Q-function step-update
-    client_args['verbose_search'] = 3             # 0: no print, [1]: print PROST search / MQTE result / UCT / rollout / self-play, 2: print MQTE/UCT search tree / details of self-play, 3: print more details of UCT search tree (all action outcomes)
-    # client_args['verbose_analysis'] = 1           # 0: no print, [1]: print analysis (ordered goals, context, SIGMA, TD error), 2: print details, 3: print more details
-    # client_args['verbose_hyothesis_model'] = 1    # 0: no print, 1: print details for multi-hypothesis model planning
-    client_args['verbose_debug'] =1             # 0: no print, 1: print goal context for each action, 2: print active features, [3]: print active first-order features and their grounding, 4: print possible substitutions of first-order features
-
 if 'learned10' in setting_choice:
     import_rddl_folder = exp_utils.mbrrl_path + '/domains/learned_10/*'
 elif 'learned50' in setting_choice:
@@ -734,20 +696,13 @@ if 'kr' == setting_choice[0]:
         client_args['prune'] = False
     elif use_vanilla_dyna:
         raise Exception('Must specify initial model: true, approx, or learned')
-# elif 'no-free-var' == setting_choice[0]:
-#     for domain in best_function_approximation:
-#         if domain == 'others':
-#             function_approximations = [KR[best_function_approximation[domain]]]
-#         else:
-#             keyed_function_approximations[domain] = [KR[best_function_approximation[domain]]]
-#     client_args['lfa_max_num_free_var'] = 0
-# elif 'cx' == setting_choice[0]:
-#     description += ' - test contextual grounding and max-operator'
-#     function_approximations = GND_APPROX+CX_OPERATOR
-#     problems = [('academic_advising', 3)]
-#     random_reps = False
-#     num_reps = 3
-#     num_rounds = 1000
+elif 'no-free-var' == setting_choice[0]:
+    for domain in best_function_approximation:
+        if domain == 'others':
+            function_approximations = [KR[best_function_approximation[domain]]]
+        else:
+            keyed_function_approximations[domain] = [KR[best_function_approximation[domain]]]
+    client_args['lfa_max_num_free_var'] = 0
 elif 'prl' == setting_choice[0]:
     description += ' - Mixed Approx.'
     planners = ['dual-doubleq']
@@ -833,11 +788,6 @@ elif 'knowledge-transfer' == setting_choice[0] or 'transfer-learning' == setting
     client_args['import_knowledge_folder'] = exp_utils.append_list(client_args['import_knowledge_folder'], import_knowledge_folder)
     # client_args['lfa_import_weights'] = False
     client_args['import_qvalue'] = 'qvalue_approximation.dat'
-# elif 'rpe' == setting_choice[0]:
-#     num_rounds = 1
-#     num_random_inst = 1000
-#     function_approximations = [('ifdd+', 'linear', 'all_plsn', criteria+'location-goal', use_SL, ifdd), ('ifdd+', 'linear', 'all_plsn', criteria+'location-ordered-goal', use_SL, ifdd)]
-#     client_args['import_qvalue'] = 'qvalue_approximation.dat'
 elif 'intrinsic' == setting_choice[0]:
     if 'transfer' in setting_choice:
         client_args['import_knowledge_folder'] = exp_utils.append_list(client_args['import_knowledge_folder'], import_knowledge_folder)
@@ -982,164 +932,6 @@ elif 'mmp' == setting_choice[0]:
     #             keyed_function_approximations[domain] = [tuple(list(v)+MQTE) for v in keyed_function_approximations[domain]]
     #         else:
     #             keyed_function_approximations[domain] = [tuple(list(v)+MQTE) for v in function_approximations]
-elif 'ros' == setting_choice[0]:
-    load_problems = True                            # needed for ROS
-    client_args['simulator_port'] = 2424
-
-    # problem setting
-    client_args['allow_latent_objects'] = False     # (i.e., expanding MDP, for Tiago HRI only)
-    client_args['dynamic_constraint_duration'] = 300
-
-    # policy settings
-    client_args['lfa_conflict_resolution_level'] = 2
-    policies = ['greedy']
-    client_args['max_loop_size'] = 2
-    # client_args['noop_actions_allowed'] = False
-    
-    # UCT setting
-    client_args['prune_actions'] = 1                # Recommended value = 0; If 1, then prune useless actions
-    client_args['rollout_horizon'] = 5              # Maximum simulation depth (UCT) (must simulate till end unless using Q-function)
-    client_args['policy_rollout_horizon'] = 5       # Simulation rollout length using policy generated from Q-function instead of random policy
-    client_args['timeout'] = 30                     # Maximum runtime (seconds)
-    client_args['early_termination'] = 1            # Recommended value = 0; If 1, then terminate early if condition is satisfied
-
-    # verbose
-    client_args['verbose_state'] = 2                # 0: no print, 1: print state vector, [2]: print true state fluents, 3: print all state fluents
-    client_args['verbose_action'] = 2               # 0: no print, [1]: print Q-values of applicable actions, 2: print Q-values for model-based and model-free
-    client_args['verbose_search'] = 0               # 0: no print, [1]: print PROST search / MQTE result / UCT / rollout / self-play, 2: print MQTE/UCT search tree / details of self-play, 3: print more details of UCT search tree
-
-    # client_args['plans_file'] = '/media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/domains/robots/tiago_hri_inst_0_plan.txt'
-    
-    ######## INCREMENT ROS_ROUND FROM ZERO
-    ROS_ROUND = 0
-    if True or ROS_ROUND == 0:
-        # import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/large-scale-policy/HRI-2/*/'
-        # import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/large-scale-policy/HRI-3/*/'
-        import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/large-scale-policy/HRI-3-CRL2-CL/*/'
-        # import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/large-scale-policy/HRI-3-CRL2-CL-DO/*/'
-    else:                                           # this is for transfer learning in ROS
-        import_knowledge_folder = '/media/alvin/HDD/Academics/PhD/Coding/RL/mbrrl/results-000'+str(ROS_ROUND)+'/*/'
-
-    ########## define problem set ##########
-    starting_problem_inst = 10+ROS_ROUND            # start from problem instance #starting_problem_inst
-    # skip_experiments = []
-    # do_experiments = [1,3,4,5,6,7,8,9]            # experiments to run starting from index 1
-    # skip_experiments = [1,2,3,4,5,6,7,8,9,10]     # do not edit
-    # for exp in do_experiments:
-    #     skip_experiments = [v for v in skip_experiments if v != exp]    
-    skip_experiments = [v-1 for v in skip_experiments]
-    # print(skip_experiments)
-    
-    num_reps = 1                                    # number of repetitions for each problem instance; a different imported policy is used in eacn repetition (each repetition gives one logfolder)
-    num_rounds = 1                                  # number of episodes for each problem instance (only do one so that files are exported out, else if ROS runs into error, all progress is lost)
-    num_problems = 10                               # number of problem instances to solve in each repetition (if using split, each problem instance gives one session, else it gives one logfolder)
-    # problem = ('tiago_hri', 1)
-    # problem = ('tiago_hri', 2)
-    problem = ('tiago_hri', 3)
-    
-    if 'split' in setting_choice:                   # this cannot be used with ROS (not implemented, try it and an assertion will be thrown)
-        # One Q-function is used to solve a different problem instance in each episode
-        # Example: problems = [('tiago_hri', ['1_10', '1_11', '1_12', '1_13', '1_14', '1_15', '1_16', '1_17', '1_18', '1_19'])]
-        random_reps = False
-        problems = domains_utils.lsof_domains.getProblemInstances([problem], num_instances = num_problems, num_repetitions = 1, starting_seed = starting_problem_inst+1, concatenate = True)
-    elif 'same' in setting_choice:
-        # One Q-function is used to solve a different problem instance in each repetition
-        # Example: problems = [('tiago_hri', '1_10'), ('tiago_hri', '1_11'), ('tiago_hri', '1_12'), ('tiago_hri', '1_13'), ('tiago_hri', '1_14'), ('tiago_hri', '1_15'), ('tiago_hri', '1_16'), ('tiago_hri', '1_17'), ('tiago_hri', '1_18'), ('tiago_hri', '1_19')]
-        random_reps = False
-        problems = []
-        for i in range(num_problems):
-            problems += [(problem[0], str(problem[1])+'_'+str(i+starting_problem_inst))]
-    elif 'diff' in setting_choice:
-        # A different Q-function is used to solve the same problem instance in each repetition
-        # Example: problems = [('tiago_hri', '1_10'), ('tiago_hri', '1_11'), ('tiago_hri', '1_12'), ('tiago_hri', '1_13'), ('tiago_hri', '1_14'), ('tiago_hri', '1_15'), ('tiago_hri', '1_16'), ('tiago_hri', '1_17'), ('tiago_hri', '1_18'), ('tiago_hri', '1_19')]
-        random_reps = False
-        num_reps = num_problems
-        num_problems = 1
-        problems = []
-        for i in range(num_problems):
-            problems += [(problem[0], str(problem[1])+'_'+str(i+starting_problem_inst))]
-    else:
-        # A different Q-function is used to solve a different problem instance in each repetition
-        # Example: problems = [('tiago_hri', 1)]
-        random_reps = True
-        num_reps = num_problems
-        problems = [problem]
-        client_args['seed'] = starting_problem_inst+1
-    ########## ########## ##########
-
-    for domain in best_function_approximation:
-        if domain == 'others':
-            function_approximations = [KR[best_function_approximation[domain]]]
-        else:
-            keyed_function_approximations[domain] = [KR[best_function_approximation[domain]]]
-    if use_MQTE:
-        for domain in domains_for_MQTE:
-            function_approximations_copy = keyed_function_approximations.get(domain, function_approximations)
-            keyed_function_approximations[domain] = [tuple(list(v)+MQTE) for v in function_approximations_copy]
-
-    if 'knowledge-transfer' in setting_choice:
-        description += ' - Knowledge Transfer'
-        # policies = ['greedy']
-        client_args['import_knowledge_folder'] = exp_utils.append_list(client_args['import_knowledge_folder'], import_knowledge_folder)
-        client_args['import_qvalue'] = 'qvalue_approximation.dat'
-        client_args['online_q_update'] = False
-    elif 'transfer-learning' in setting_choice:
-        description += ' - Transfer Learning'
-        # policies = ['epsilon']
-        # client_args['epsilon'] = 0.2
-        client_args['import_knowledge_folder'] = exp_utils.append_list(client_args['import_knowledge_folder'], import_knowledge_folder)
-        client_args['import_qvalue'] = 'qvalue_approximation.dat'
-        client_args['online_q_update'] = True
-
-    if 'mmp' in setting_choice:
-        description += ', MMP'
-        model_representations = ['dbn']
-        if 'true' in setting_choice:
-            initial_domains = []
-            if 'prost' in setting_choice:
-                client_args['prune'] = True
-        elif 'approx' in setting_choice:
-            initial_domains = [['approx']]
-            client_args['prune'] = False
-        elif 'learned' in setting_choice or 'learned10' in setting_choice or 'learned50' in setting_choice:
-            client_args['import_rddl_folder'] = import_rddl_folder
-            client_args['import_rddl_file'] = 'learned_domain.rddl'
-            client_args['import_multi_rddl'] = 1
-            client_args['prune'] = False
-        else:
-            raise Exception('Must specify initial model: true, approx, or learned')
-
-        plan_rollouts = [('uct-semihybrid', 1, 1, 1), ('uct-hybrid', 1, 1, 1), ('uct-linear-hybrid', 1, 1, 1)]
-        plan_rollouts = [plan_rollouts[1]]
-        
-        for domain in best_function_approximation:
-            if domain == 'others':
-                function_approximations_copy_copy = function_approximations
-            else:
-                function_approximations_copy_copy = keyed_function_approximations[domain]
-            function_approximations_copy = []
-            for pr in plan_rollouts:
-                rollout = [('multi_planning', pr[0]), ('beam_search_branch', pr[1]), ('num_hypothesis_domains', pr[2]), ('plan_rollout_horizon', pr[3])]
-                function_approximations_copy += [tuple(list(v)+rollout) for v in function_approximations_copy_copy]
-            if domain == 'others': 
-                function_approximations = function_approximations_copy
-            else:
-                keyed_function_approximations[domain] = function_approximations_copy
-        plan_rollouts = []
-elif 'compute-vd' == setting_choice[0]:
-    client_args['import_rddl_folder'] = exp_utils.mbrrl_path + '/domains/learned_10/*'
-    client_args['import_rddl_folder'] = exp_utils.mbrrl_path + '/domains/learned_50/*'
-    client_args['import_rddl_folder'] = exp_utils.mbrrl_path + '/domains/learned/*'
-    client_args['import_rddl_file'] = 'learned_domain.rddl'
-    client_args['import_multi_rddl'] = 10
-    client_args['evaluate_model_prediction_error'] = True
-    client_args['import_transition_folder'] = '/media/alvin/HDD/Academics/PhD/Coding/Experiments/mbrrl/MQTE-statistics/*/'
-    client_args['import_transition_file'] = 'transitions_all_SAS.dat'
-    function_approximations = [GND_APPROX]
-    problems = [('tiago_hri', '1_0'), ('recon2', '6_0'), ('turtlebot_survey', 'de4_0'), ('tiago_fetch', 'd2_0')]
-    problems = [('tiago_hri', '1_0'), ('turtlebot_survey', 'de4_0')]
-    num_reps = 10
-    num_rounds = 1
 # elif 'ippc' == setting_choice[0]:
 #     num_reps = 1
 #     num_rounds = 100
@@ -1151,31 +943,6 @@ elif 'compute-vd' == setting_choice[0]:
 #     for domain in domains:
 #         for i in range(10):
 #             problems += [(domain, i+1)]
-elif 'round-robin' == setting_choice[0]:
-    # problems = [('academic_advising', 5), ('recon2', 6), ('turtlebot_survey', 'de4'), ('tiago_hri', 2), ('tiago_fetch', 'd2'), ('triangle_tireworld', 6)]
-    num_reps = 1
-    num_rounds = 1
-    function_approximations = [GND_APPROX]
-    # function_approximations = [(True, 'linear', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all'), 
-    #                            (True, 'linear', '-or--location-ground-ordered-goal', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all_pls'),
-    #                            (True, 'linear', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all_n'), 
-    #                            (True, 'linear', '-or--location-ground-ordered-goal', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all_plsn'),
-    #                            ('ifdd+', True, 'linear', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all'), 
-    #                            ('ifdd+', True, 'linear', '-or--location-ground-ordered-goal', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all_pls'),
-    #                            ('ifdd+', True, 'linear', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all_n'), 
-    #                            ('ifdd+', True, 'linear', '-or--location-ground-ordered-goal', ('ifdd_discovery_threshold', 0.1), ('ifdd_max_features_addition', 20), 'all_plsn')]
-    # initial_domains = [['true', 'approx']] * 19
-    # initial_domains = [
-    #     ['true'],
-    #     ['true'],
-    #     ['true', 'deterministic', 'approx', 'empty'],
-    #     ['true', 'deterministic', 'approx', 'empty'],
-    #     ['true', 'deterministic', 'approx', 'empty'],
-    #     ['true', 'approx', 'empty'],
-    #     ['true', 'approx', 'empty'],
-    #     ['true', 'deterministic', 'approx', 'empty'],
-    #     ['true', 'approx', 'empty'],
-    #     ['true', 'approx', 'empty']]
 else:
     raise Exception('No matching values for setting choice \'' + exp_utils.list2string(setting_choice) + '\'')
 

@@ -179,7 +179,7 @@ client_args = {
         'verbose_search': 0,                              # 0: no print, [1]: print PROST search / MQTE result / UCT / rollout / self-play, 2: print MQTE/UCT search tree / details of self-play, 3: print more details of UCT search tree
         'verbose_analysis': 0,                            # 0: no print, [1]: print analysis (ordered goals, context, SIGMA, TD error), 2: print details, 3: print more details
         'verbose_hyothesis_model': 1,                     # 0: no print, 1: print details for multi-hypothesis model planning
-        'verbose_debug': 0,                               # 0: no print, 1: print goal context for each action, 2: print active features, [3]: print active first-order features and their grounding, 4: print possible substitutions of first-order features
+        'verbose_debug': 0,                               # 0: no print, 1: print goal context for each action, 2: print active features, [3]: print active first-order features and their grounding, 4: print possible substitutions of first-order features, 5: print first-order features followed by its grounding
         
         # ---------- Training Data
         'all_transitions_file': None,                     # transition file to export to
@@ -409,7 +409,7 @@ best_function_approximation = {
 
 ############   TRANSFER LEARNING   ############
 import_knowledge_folder = '/'
-import_knowledge_folder_lfd .= './'
+import_knowledge_folder_lfd = './'
 if transfer_lfd:
     TRANSFER = [('import_qvalue', 'qvalue_approximation.dat'), ('epsilon', 0.2), ('import_knowledge_folder', [import_knowledge_folder]+[import_knowledge_folder_lfd])]
     client_args['import_knowledge_folder'] = exp_utils.append_list(client_args['import_knowledge_folder'], import_knowledge_folder_lfd)
@@ -435,7 +435,7 @@ if use_lfd or transfer_lfd:
 # client_args['verbose_search'] = 2             # 0: no print, [1]: print PROST search / MQTE result / UCT / rollout / self-play, 2: print MQTE/UCT search tree / details of self-play, 3: print more details of UCT search tree
 # client_args['verbose_analysis'] = 2           # 0: no print, [1]: print analysis (ordered goals, context, SIGMA, TD error), 2: print details, 3: print more details
 # client_args['verbose_hyothesis_model'] = 1    # 0: no print, [1]: print details for multi-hypothesis model planning
-# client_args['verbose_debug'] = 1              # 0: no print, [1]: print goal context for each action, 2: print active features, [3]: print active first-order features and their grounding, 4: print possible substitutions of first-order features
+# client_args['verbose_debug'] = 1              # 0: no print, [1]: print goal context for each action, 2: print active features, [3]: print active first-order features and their grounding, 4: print possible substitutions of first-order features, 5: print first-order features followed by its grounding
 if not client_args['use_model_for_app_actions']:
     client_args['verbose_action'] = 0           # 0: no print, [1]: print Q-values of applicable actions
 
@@ -645,11 +645,11 @@ description = 'description: ' + setting_choice
 setting_choice = setting_choice.split('_')
 
 if 'learned10' in setting_choice:
-    import_rddl_folder = exp_utils.mbrrl_path + '/domains/learned_10/*'
+    import_rddl_folder = os.path.join(exp_utils.mbrrl_path, 'domains', 'learned_10', '*')
 elif 'learned50' in setting_choice:
-    import_rddl_folder = exp_utils.mbrrl_path + '/domains/learned_50/*'
+    import_rddl_folder = os.path.join(exp_utils.mbrrl_path, 'domains', 'learned_50', '*')
 elif 'learned' in setting_choice:
-    import_rddl_folder = exp_utils.mbrrl_path + '/domains/learned/*'
+    import_rddl_folder = os.path.join(exp_utils.mbrrl_path, 'domains', 'learned', '*')
 
 
 if 'kr' == setting_choice[0]:
@@ -760,7 +760,24 @@ elif 'knowledge-transfer' == setting_choice[0] or 'transfer-learning' == setting
             client_args['import_multi_rddl'] = 1
             client_args['prune'] = False
         else:
-            raise Exception('Must specify initial model: true, approx, or learned')        
+            raise Exception('Must specify initial model: true, approx, or learned')
+    elif use_MQTE:
+        if 'true' in setting_choice:
+            client_args['use_model_for_prediction'] = True
+            model_representations = ['dbn']
+            initial_domains = []
+        elif 'approx' in setting_choice:
+            client_args['use_model_for_prediction'] = True
+            model_representations = ['dbn']
+            initial_domains = [['approx']]
+            client_args['prune'] = False
+        elif 'learned' in setting_choice or 'learned10' in setting_choice or 'learned50' in setting_choice:
+            client_args['use_model_for_prediction'] = True
+            model_representations = ['dbn']
+            client_args['prune'] = False    # function_approximations = GND_APPROX+KR
+            client_args['import_rddl_folder'] = import_rddl_folder
+            client_args['import_rddl_file'] = 'learned_domain.rddl'
+            client_args['import_multi_rddl'] = 1   
     # function_approximations = GND_APPROX+KR
     # if use_MQTE:
     #     KR_MQTE = [tuple(list(v)+MQTE) for v in KR]

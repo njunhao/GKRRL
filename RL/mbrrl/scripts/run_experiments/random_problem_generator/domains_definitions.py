@@ -551,14 +551,14 @@ unique_fluents_mapping = [
     RandomFluent('PERSON_GOAL_OBJECT_AT', [Parameter('obj', 1)]),                       # all randomized PERSON_GOAL_OBJECT_AT must have different objects
     RandomFluent('PERSON_GOAL_OBJECT_WITH', [Parameter('obj', 1)])                      # all randomized PERSON_GOAL_OBJECT_WITH must have different objects
 ]
-lsof_domains.add(Domain(name='tiago_hri', fluents=rfluents, constrained_fluents=cfluents))
+lsof_domains.add(Domain(name='tiago_hri', constrained_fluents=cfluents))
 
 # 2nd round of randomization: randomize waypoints for object_at and PERSON_GOAL_OBJECT_AT which cannot be equal
 cfluents = [
     # it is ok to specify extraneous waypoints that an instance does not have, only waypoints in a .rddl instance will be used
     ConstrainedFluents([ RandomFluent('object_at', [Parameter('waypoint', 1)]), RandomFluent('PERSON_GOAL_OBJECT_AT', [Parameter('waypoint', 2)]) ], INEQUALITY, 'waypoint: {wp1, wp2, wp3, wp5, wp6, wp7}'),
 ]
-lsof_domains.add(Domain(name='tiago_hri', fluents=rfluents, constrained_fluents=cfluents, second_randomization=True))
+lsof_domains.add(Domain(name='tiago_hri', constrained_fluents=cfluents, second_randomization=True))
 
 
 ################## blocksworld ##################

@@ -446,8 +446,8 @@ class Analysis:
         self.num_steps = None
         self.set_attribute('logfile', logfile)
         if logfile:
-            self.set_attribute('logfolder', logfile[:logfile.rfind('/')])
-            logfile_ = logfile.split('/')
+            self.set_attribute('logfolder', logfile[:logfile.rfind(os.sep)])
+            logfile_ = os.path.normpath(logfile).split(os.sep)
             # use subfolder as logfolderID (this may not be sufficient so we do correction in grouped analysis)
             # Example: 2 folders with folderA/subfolderB and folderC/subfolderB will have the same logfolderID despite having different paths
             folder = logfile_[-4:-3]
@@ -1274,7 +1274,7 @@ class MultiAnalysis:
                 kwargs['fig'].set_size_inches(kwargs['figsize'][0], kwargs['figsize'][1])
                 filename = filename[: filename.rfind('.')] + '__' + gen_num(folder, filename[: filename.rfind('.')]) + filename[filename.rfind('.') :]
                 # if use bbox_inches, this will prevent figure from cropping off stuff, however, title wrap no longer works
-                plt.savefig(folder+'/'+filename, format=kwargs['format'], bbox_inches="tight", dpi=kwargs['dpi'])
+                plt.savefig(os.path.join(folder, filename), format=kwargs['format'], bbox_inches="tight", dpi=kwargs['dpi'])
                 # plt.savefig(folder+filename, format=kwargs['format'], dpi=kwargs['dpi'])
                 plt.close(plt.gcf())          # save memory by closing current figure
             if show_fig:
@@ -1287,8 +1287,8 @@ class MultiAnalysis:
         # instance = None
         save_fig = kwargs['save']
         show_fig = kwargs['show_fig']
-        ippc_folder = self.logfolder.split('/')[:-2]
-        kwargs['ippc_log'] = '/'+os.path.join(*ippc_folder, 'ippc_scores.log')          # to save IPPC scores in this folder
+        ippc_folder = os.path.normpath(self.logfolder).split(os.sep)[:-2]
+        kwargs['ippc_log'] = os.sep+os.path.join(*ippc_folder, 'ippc_scores.log')          # to save IPPC scores in this folder
 
         # DEPRECATED: this depends on self.identifier and may include additional common attributes
         # replaced with MultiAnalysis.get_title()
@@ -1459,10 +1459,10 @@ class MultiAnalysis:
                 
                 filename = filename[: filename.rfind('.')] + '__' + fig_num + filename[filename.rfind('.') :]
                 if kwargs['save_legend_in_fig'] and kwargs.get('ax', None) and kwargs['ax'].get_legend():
-                    save_legend_as_figure(kwargs['ax'].get_legend(), folder+'/'+filename[: filename.rfind('.')] + '__legend.png')
+                    save_legend_as_figure(kwargs['ax'].get_legend(), os.path.join(folder, filename[: filename.rfind('.')]+'__legend.png'))
                     kwargs['ax'].get_legend().remove()
                 # if use bbox_inches, this will prevent figure from cropping off stuff, however, title wrap no longer works
-                plt.savefig(folder+'/'+filename, format=kwargs['format'], bbox_inches="tight", dpi=kwargs['dpi'])
+                plt.savefig(os.path.join(folder, filename), format=kwargs['format'], bbox_inches="tight", dpi=kwargs['dpi'])
                 plt.close(plt.gcf())                                                    # save memory by closing current figure
             if 'original_label' in kwargs and isinstance(kwargs['original_label'], str) and kwargs['original_label']:
                 legend_labels += '\n' + kwargs['original_label']                        # write original legend label to text file instead of custom label
@@ -1472,7 +1472,7 @@ class MultiAnalysis:
                 kwargs['fig'].show()
         if legend_labels and folder != '':            # if folder == '', means nothing is plotted (this happens if a metric is not avaiable such as num of features for PROST)
             if save_fig:
-                f = open(folder+'/legend.txt', "a")
+                f = open(os.path.join(folder, 'legend.txt'), "a")
                 f.write(legend_labels+'\n')
                 f.close()
             else:
@@ -1752,7 +1752,7 @@ def set_logfolderID(lsof_data, truncate_last_few_folders = 2):
         longest_common_index = 1000
         prev_logfolder = []
         for logfolder in logfolders:
-            logfolder = logfolder[0].split('/')                     # split logfolder into list of strings
+            logfolder = os.path.normpath(logfolder[0]).split(os.sep)  # split logfolder into list of strings
             if not prev_logfolder:                                  # true for 1st iteration
                 prev_logfolder = logfolder
                 continue
@@ -1767,7 +1767,7 @@ def set_logfolderID(lsof_data, truncate_last_few_folders = 2):
             if index < longest_common_index:
                 longest_common_index = index
         for i in range(len(lsof_data)):
-            logfolder = logfolders[i][0].split('/')
+            logfolder = os.path.normpath(logfolders[i][0]).split(os.sep)
             folder = logfolder[longest_common_index:-truncate_last_few_folders]  # do not consider last folder which is experiment_<domain>_<planner>_<policy>_000# and 2nd last folder which is <domain>
             if folder:                                              # if logfolders are exactly the same, then folder = []
                 lsof_data[i].delete_attribute('logfolderID')        # delete key from dict before set_attribute, else it will append to existing value rather than overwrite

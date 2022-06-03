@@ -15,12 +15,12 @@ import common_utils
 import parser
 import analysis_type as aysT
 
-if os.getcwd().find('/mbrrl/') >= 0:
-    mbrrl_path = os.getcwd()[:os.getcwd().find('/mbrrl/')+len('/mbrrl/')]
-elif os.getcwd().find('/mbrrl') >= 0:
-    mbrrl_path = os.getcwd()[:os.getcwd().find('/mbrrl')+len('/mbrrl')]
+if os.getcwd().find(os.sep+'mbrrl'+os.sep) >= 0:
+    mbrrl_path = os.getcwd()[:os.getcwd().find(os.sep+'mbrrl'+os.sep)+len(os.sep+'mbrrl'+os.sep)]
+elif os.getcwd().find(os.sep+'mbrrl') >= 0:
+    mbrrl_path = os.getcwd()[:os.getcwd().find(os.sep+'mbrrl')+len(os.sep+'mbrrl')]
 else:
-    raise("Unable to determine library path, current directory is " + os.getcwd())
+    raise Exception("Unable to determine library path, current directory is " + os.getcwd())
 
 DOMAINS = ['tiago_hri', 'taxi', 'grid_survey', 'robot_inspection', 'recon2', 'orca_inspection', 'husky_inspection', 'turtlebot', 'turtlebot_goal', 'turtlebot_survey', 'tiago', 'tiago_fetch', 'triangle_tireworld', 'crossing_traffic', 'elevators', 'game_of_life', 'navigation', 'academic_advising', 'wildfire', 'recon', 'skill_teaching', 'tamarisk', 'sysadmin', 'blocksworld']
 settings = {}
@@ -225,7 +225,7 @@ settings['plot_settings'] = {
 def get_common_folder(folders):
     # generate a common folder for list of folders to save figures in
     paths = []
-    for path in [f.split('/') for f in folders if f]:
+    for path in [os.path.normpath(f).split(os.sep) for f in folders if f]:
         paths.append([p for p in path if p != ''])           # remove empty string
     path_is_common = True
     common_path = []
@@ -259,7 +259,7 @@ def get_common_folder(folders):
             merged_name.append(aysT.list2string(subfolders, sort=False, linebreak=False, delimiter='-'))  # merged name from the first dismatching folder till the last folder
     merged_name = list(dict.fromkeys(merged_name))      # remove duplicates
     common_path.append(aysT.list2string(lsof_strings=merged_name, sort=False, linebreak=False, delimiter='___'))
-    return '/'+os.path.join(*common_path)
+    return os.sep+os.path.join(*common_path)
 
 
 # FORMAT for input: list of strings OR list of 2-element tuple where (string for folder, list of numbers for which subfolder with such number will be analysed)
@@ -337,10 +337,10 @@ def get_logfolders(folders):
             continue
         subfolders = os.listdir(folders[i])
         for subfolder in subfolders:
-            subfolder = folders[i]+'/'+subfolder
+            subfolder = os.path.join(folders[i], subfolder)
             if os.path.isdir(subfolder):
                 logfolders.append(subfolder)
-                new_logfolders = [subfolder+'/'+f for f in os.listdir(subfolder)]
+                new_logfolders = [os.path.join(subfolder, f) for f in os.listdir(subfolder)]
                 for folder in new_logfolders:
                     if os.path.isdir(folder):
                         try:
@@ -413,7 +413,7 @@ def run(folders, module = None):
         if not os.path.isdir(folder):
             continue
         print("Reading " + folder + "...")
-        domain, planner, policy = parser.interpret_name( folder[folder.rfind('/')+1:-1] )
+        domain, planner, policy = parser.interpret_name( folder[folder.rfind(os.sep)+1:-1] )
         if not any(['domain' in grouping_key for grouping_key in settings['grouping_keys']]):
             domain = 'alldomain'
         if domain is None:
@@ -470,9 +470,9 @@ def run(folders, module = None):
             verbose = 1
             try:
                 if is_ACE:
-                    analysis = parser.parse_ace_results(folder.strip()+'/'+settings['ace_logfile'], verbose)
+                    analysis = parser.parse_ace_results(os.path.join(folder.strip(), settings['ace_logfile']), verbose)
                 else:
-                    analysis = parser.parse_mbrrl_results(folder.strip()+'/'+settings['logfile'], verbose)
+                    analysis = parser.parse_mbrrl_results(os.path.join(folder.strip(), settings['logfile']), verbose)
             except Exception as e:
                 if hasattr(e, 'message'):
                     print(e.message)
@@ -485,9 +485,9 @@ def run(folders, module = None):
                 # print(np.shape(analysis.get_data('rewards')[0]))
             elif verbose == 0:
                 if is_ACE:
-                    print("Failed to analyse " + folder.strip()+'/'+settings['ace_logfile'])
+                    print("Failed to analyse " + os.path.join(folder.strip(), settings['ace_logfile']))
                 else:
-                    print("Failed to analyse " + folder.strip()+'/'+settings['logfile'])
+                    print("Failed to analyse " + os.path.join(folder.strip(), settings['logfile']))
         
         if not analyses:
             print('WARNING: Not a single folder is analysed, check that root_folder is set correctly')
@@ -501,7 +501,7 @@ def run(folders, module = None):
             is_grouping_data = True
 
         for domain in analyses:                         # for analyse belonging to the same domain
-            fig_path = base_folder+'/fig_'+domain
+            fig_path = os.path.join(base_folder, 'fig_'+domain)
             fc_index = 0
             for fc in settings['filter_conditions']:
                 analyses_of_interest = [a for a in analyses[domain] if pass_filter(a, fc)]
@@ -510,7 +510,7 @@ def run(folders, module = None):
                     fc_index += 1
                     continue
                 num_str = aysT.gen_num(fig_path) if not is_grouping_data else ""
-                multi_analysis = aysT.MultiAnalysis(analyses_of_interest, logfolder = fig_path+'/'+num_str)
+                multi_analysis = aysT.MultiAnalysis(analyses_of_interest, logfolder = os.path.join(fig_path, num_str))
                 fc_index += 1
 
                 for grouping_key in settings['grouping_keys']:
@@ -526,7 +526,7 @@ def run(folders, module = None):
                         for group_analyses in lsof_grouped_analyses:
                             multi_analyses.append(aysT.MultiAnalysis(
                                 group_analyses, 
-                                logfolder = fig_path+'/'+group_fig_path+'_'+num_str,
+                                logfolder = os.path.join(fig_path, group_fig_path+'_'+num_str),
                                 identifier = grouping_key))
                     else:
                         multi_analyses = [multi_analysis]
@@ -546,12 +546,12 @@ if __name__ == "__main__":
     module = None
     if len(sys.argv) >= 2:
         for i in range(1, len(sys.argv)):
-            if ('/' in sys.argv[i]):                        # assume absolute folder path is given
+            if (os.sep in sys.argv[i]):                        # assume absolute folder path is given
                 settings['folders_to_analyse'].append(sys.argv[i])
             else:
                 try:
                     int(sys.argv[i])                        # input is an int
-                    settings['folders_to_analyse'].append(mbrrl_path+'/results-' + sys.argv[i])
+                    settings['folders_to_analyse'].append(os.path.join(mbrrl_path, 'results-' + sys.argv[i]))
                 except ValueError:
                     module = sys.argv[i]
     run(folders = settings['folders_to_analyse'], module = module)

@@ -23,14 +23,15 @@ DISABLE_LIBNOTIFY=True
 # except ImportError:
 #     DISABLE_LIBNOTIFY=True
 
-if os.getcwd().find('/mbrrl/') >= 0:
-    mbrrl_path = os.getcwd()[:os.getcwd().find('/mbrrl/')+len('/mbrrl/')]
-elif os.getcwd().find('/mbrrl') >= 0:
-    mbrrl_path = os.getcwd()[:os.getcwd().find('/mbrrl')+len('/mbrrl')]
+if os.getcwd().find(os.sep+'mbrrl'+os.sep) >= 0:
+    mbrrl_path = os.getcwd()[:os.getcwd().find(os.sep+'mbrrl'+os.sep)+len(os.sep+'mbrrl'+os.sep)]
+elif os.getcwd().find(os.sep+'mbrrl') >= 0:
+    mbrrl_path = os.getcwd()[:os.getcwd().find(os.sep+'mbrrl')+len(os.sep+'mbrrl')]
 else:
-    raise("Unable to determine library path, current directory is " + os.getcwd())
+    raise Exception("Unable to determine library path, current directory is " + os.getcwd())
 working_path = mbrrl_path
 # set directory for writing files to during experiment, set to /scratch if running batch experiments on a server
+
 
 
 # ----- SETTINGS ----- #
@@ -38,7 +39,7 @@ binary_file = 'mbrrl'
 logfile = 'mbrrl_console.log'
 summary_file = 'summary.log'
 opennn_training_file = 'training_data.dat'
-ros_path = mbrrl_path+'/../../ROS/ROSPlan/src/rosplan/rosplan_rl/common/'
+ros_path = os.path.join(mbrrl_path, '..', '..', 'ROS', 'ROSPlan', 'src', 'rosplan', 'rosplan_rl', 'common')
 generated_files = {
         'log': [logfile, 'mbrrl.log', 'intrinsic_reward.dat', 'ruleslearner.log', 'action_duration.log', 'learned_domain.rddl'],
         'ros': [ros_path+'ros_console.log', ros_path+'ros.bag'],
@@ -55,18 +56,18 @@ template_files = ['mdp_template.pddl', 'inst_mdp_template.pddl', 'config.cfg', '
 tmp_files = ['learned_domain_inst.txt', 'transitions_tmp.dat']
 
 impt_paths = {
-        'log_path': working_path + '/results/current',
-        'features_path': mbrrl_path + '/domains/robots_features'
+        'log_path': os.path.join(working_path, 'results', 'current'),
+        'features_path': os.path.join(mbrrl_path, 'domains', 'robots_features')
 }
 
 generic_files = {
-        'bin_debug': mbrrl_path + '/build/src/' + binary_file,
-        'bin_release': mbrrl_path + '/src/' + binary_file,
-        'rddl_parser': mbrrl_path + '/external/prost/rddl-parser-release',
-        'noprune_rddl_parser': mbrrl_path + '/external/prost/simple-rddl-parser',
-        'log_conf': mbrrl_path + '/scripts/run_experiments/logger.conf',
-        'learner_conf': mbrrl_path + '/scripts/run_experiments/ruleslearner_logger.conf',
-        'run-server': mbrrl_path + '/scripts/run_experiments/run-server'
+        'bin_debug': os.path.join(mbrrl_path, 'build', 'src', binary_file),
+        'bin_release': os.path.join(mbrrl_path, 'src', binary_file),
+        'rddl_parser': os.path.join(mbrrl_path, 'external', 'prost', 'rddl-parser-release'),
+        'noprune_rddl_parser': os.path.join(mbrrl_path, 'external', 'prost', 'simple-rddl-parser'),
+        'log_conf': os.path.join(mbrrl_path, 'scripts', 'run_experiments', 'logger.conf'),
+        'learner_conf': os.path.join(mbrrl_path, 'scripts', 'run_experiments', 'ruleslearner_logger.conf'),
+        'run-server': os.path.join(mbrrl_path, 'scripts', 'run_experiments' ,'run-server')
 }
 
 # goal sequence if using given-ordered-context, this will be set in run_experiments.py
@@ -118,15 +119,15 @@ for key, values in alias.items():
     all_alias += values
 
 def_server_args = {
-        'home_dir': mbrrl_path + "/external/prost/testbed",         # this is not used if nargs > 1
-        'benchmark_dir': mbrrl_path + '/domains/experiments',       # arg2: benchmark directory (required input)
-        'port': 2323,                                               # arg3: portnumber
-        'num_rounds': 5,                                            # arg4: number of rounds
-        'seed': 1,                                                  # arg5: random seed
-        'ind_session': 0,                                           # arg6: individual session (0/1 for false/true)
-        'timeout': 0,                                               # arg7: use timeout (0/1 for false/true)
-        'log_path': impt_paths['log_path'],                         # arg8: log folder
-        'monitor_exec': 1                                           # arg9: monitor execution (0/1 for false/true)
+        'home_dir': os.path.join(mbrrl_path, 'external', 'prost', 'testbed'),   # this is not used if nargs > 1
+        'benchmark_dir': os.path.join(mbrrl_path, 'domains', 'experiments'),    # arg2: benchmark directory (required input)
+        'port': 2323,                                                           # arg3: portnumber
+        'num_rounds': 5,                                                        # arg4: number of rounds
+        'seed': 1,                                                              # arg5: random seed
+        'ind_session': 0,                                                       # arg6: individual session (0/1 for false/true)
+        'timeout': 0,                                                           # arg7: use timeout (0/1 for false/true)
+        'log_path': impt_paths['log_path'],                                     # arg8: log folder
+        'monitor_exec': 1                                                       # arg9: monitor execution (0/1 for false/true)
 }
 
 # order of arg given to shell script
@@ -141,7 +142,7 @@ server_args_order = ['home_dir', 'benchmark_dir', 'port', 'num_rounds', 'seed', 
 def_client_args = {
         # ---------- Misc
         'log_path': (1, impt_paths['log_path']),
-        'config_file': (2, impt_paths['log_path']+'/config.cfg'),
+        'config_file': (2, os.path.join(impt_paths['log_path'], 'config.cfg')),
         'save_file': ('config', True),                              # Save files generated in each round
         'log_conf': ('config', generic_files['log_conf']),
         'learner_conf': ('config', generic_files['learner_conf']),
@@ -342,7 +343,7 @@ options = {
     'initial_domains': ['empty', 'approx', 'true'],                         # may have more types, see domains_utils.py
     'multi_planning': [None, 'safe', 'best', 'common', 'semihybrid', 'hybrid', 'linear-semihybrid', 'linear-hybrid'],
     'intrinsic_reward_types': [None, "rmax", "visit_count", "model_learner", "td_error", "delta_td_error", "goal_trajectory", "dowham", "first_order_explore", "first_order_target"],
-    'benchmark_dir': ['', mbrrl_path + '/domains/experiments']
+    'benchmark_dir': ['', os.path.join(mbrrl_path, 'domains', 'experiments')]
 }
 options['problems'] = options['problems_ippc'] + options['problems_robot'] 
 
@@ -362,15 +363,18 @@ def run_server(**kwargs):
     # check if symbolic link is working
     if not os.path.isdir(server_args['home_dir']):
         raise Exception('Symbolic link to PROST is broken: ' + server_args['home_dir'])
-    if not os.path.isdir(server_args['home_dir']+'/rddlsim'):
-        print('Symbolic link to rddlsim via PROST is broken: ' + server_args['home_dir']+'/rddlsim  -  attempting to create symbolic link')
-        os.symlink('../../rddlsim', server_args['home_dir']+'/rddlsim')
+    if not os.path.isdir(os.path.join(server_args['home_dir'], 'rddlsim')):
+        print('Symbolic link to rddlsim via PROST is broken: ' + os.path.join(server_args['home_dir'], 'rddlsim') + '  -  attempting to create symbolic link')
+        os.symlink(os.path.join('..', '..', 'rddlsim'), os.path.join(server_args['home_dir'], 'rddlsim'))
     
-    cmdline = generic_files['run-server']
+    cmdline = '\"' + generic_files['run-server'] + '\"'
     for arg in server_args_order:
-        cmdline += ' ' + str(server_args[arg])
+        if isinstance(server_args[arg], str) and os.sep in server_args[arg]:
+            cmdline += ' \"' + str(server_args[arg]) + '\"'
+        else:
+            cmdline += ' ' + str(server_args[arg])
     print("Running on port " + str(server_args['port']))
-    # subprocess.call('bash '+server_args['home_dir']+'/rddlsim/compile', shell=True)
+    # subprocess.call('bash ' + os.path.join(server_args['home_dir'], 'rddlsim', 'compile'), shell=True)
     res = subprocess.call(cmdline, shell=True)
     if (res != 0):
         print('Unexpected error')
@@ -394,7 +398,7 @@ def run_client(**kwargs):
     #     domain = kwargs['problem']
     # else:
     #     domain = kwargs['problem'][:kwargs['problem'].find("_")]
-    kwargs['config_file'] = kwargs['log_path']+ '/' + kwargs['domain'] + '_config.cfg'
+    kwargs['config_file'] = os.path.join(kwargs['log_path'], kwargs['domain']+'_config.cfg')
     
     # clear folder first
     if not os.path.exists(kwargs['log_path']):
@@ -418,11 +422,11 @@ def run_client(**kwargs):
         for file in files:
             try:
                 if isinstance(file, tuple):     # tuple is (file to be copied, filename to be used for pasting)
-                    shutil.copy2(file[0], kwargs['log_path']+'/'+file[1])
+                    shutil.copy2(file[0], os.path.join(kwargs['log_path'], file[1]))
                     if not kwargs.get('print_usage', False) and '.conf' not in file[0]:
                         print_msg(kwargs['runtime_verbose_msg'], 'Import file \''+ file[0] + '\'')
                 else:
-                    shutil.copy2(file, kwargs['log_path']+'/'+file[file.rfind('/'):])
+                    shutil.copy2(file, os.path.join(kwargs['log_path'], get_filename(file)))
                     if not kwargs.get('print_usage', False) and '.conf' not in file:
                         print_msg(kwargs['runtime_verbose_msg'], 'Import file \''+ file + '\'')
             except:
@@ -431,15 +435,15 @@ def run_client(**kwargs):
     # create an empty text file with filename = description
     # actual_log_path is only defined once for each set of experiments (i.e, once for all repetitions), thus this code will only run once
     if kwargs.get('description', None) and kwargs.get('actual_log_path', None):
-        f = open(kwargs['actual_log_path']+'/../'+kwargs['description'], 'a')
+        f = open(os.path.join(kwargs['actual_log_path'], '..', kwargs['description']), 'a')
         # f.write("Now the file has more content!")
         f.close()
 
     # modify logger.conf to set logfile location to log_path
-    kwargs['log_conf'] = kwargs['log_path'] + generic_files['log_conf'][generic_files['log_conf'].rfind('/'):]
-    kwargs['learner_conf'] = kwargs['log_path'] + generic_files['learner_conf'][generic_files['learner_conf'].rfind('/'):]
-    modify_logger_conf(kwargs['log_conf'], kwargs['log_path']+'/'+generated_files['log'][0])
-    modify_logger_conf(kwargs['learner_conf'], kwargs['log_path']+'/'+generated_files['log'][-1])
+    kwargs['log_conf'] = os.path.join(kwargs['log_path'], get_filename(generic_files['log_conf']))
+    kwargs['learner_conf'] = os.path.join(kwargs['log_path'], get_filename(generic_files['learner_conf']))
+    modify_logger_conf(kwargs['log_conf'], os.path.join(kwargs['log_path'], generated_files['log'][0]))
+    modify_logger_conf(kwargs['learner_conf'], os.path.join(kwargs['log_path'], generated_files['log'][-1]))
 
     # get commands
     cmdArgs = get_cmd_for_client(**kwargs)
@@ -461,7 +465,7 @@ def run_client(**kwargs):
         return 1
     
     # write Python msg to console log
-    f = open(kwargs['log_path'] + '/' + logfile, 'w+')
+    f = open(os.path.join(kwargs['log_path'], logfile), 'w+')
     verbose_msgs = kwargs.get('verbose_msg', []) + kwargs.get('runtime_verbose_msg', [])
     if verbose_msgs:
         verbose_msgs.insert(0, '-------------------------------- WARNING --------------------------------')
@@ -470,16 +474,16 @@ def run_client(**kwargs):
         f.write(msg+'\n')
     f.close()
     if verbose_msgs:
-        time.sleep(3)                                                         # allow time to read warning msg
+        time.sleep(3)                                                                # allow time to read warning msg
 
     # piping
-    # cmdline = cmdline + ' >> ' + kwargs['log_path'] + '/' + logfile         # use >> to append to file
-    # cmdline = cmdline + ' | tee -a ' + kwargs['log_path'] + '/' + logfile   # this allows output to file and to console
+    # cmdline = cmdline + ' >> ' + os.path.join(kwargs['log_path'], logfile)         # use >> to append to file
+    # cmdline = cmdline + ' | tee -a ' + os.path.join(kwargs['log_path'], logfile)   # this allows output to file and to console
     # print_msg(kwargs['verbose_msg'], "Piping outputs to " + logfile)
     
     # run executable
     try:
-        time.sleep(kwargs.get('client_sleep', 0))                             # allow server to load .rddl
+        time.sleep(kwargs.get('client_sleep', 0))                                    # allow server to load .rddl
         res = subprocess.call(cmdline, shell=True)
         if (res != 0):
             print("Unexpected error")
@@ -500,9 +504,9 @@ def run_client(**kwargs):
         dest_folder = 'experiment_' + kwargs['domain'] + '_' + kwargs['planner']
     else:
         dest_folder = 'experiment_' + kwargs['domain'] + '_' + kwargs['planner'] + '_' + kwargs['policy']
-    tmp_files_ = [kwargs['log_path']+'/'+f for f in tmp_files]
+    tmp_files_ = [os.path.join(kwargs['log_path'], f) for f in tmp_files]
     _, desc = get_summary_of_experiment(**kwargs)
-    finish_experiment(kwargs['log_path']+'/../'+kwargs['domain'], kwargs['log_path'], dest_folder, \
+    finish_experiment(os.path.join(kwargs['log_path'], '..', kwargs['domain']), kwargs['log_path'], dest_folder, \
                       kwargs['generated_files'], kwargs['generated_files_pattern'], tmp_files_, template_files_, desc)
     return 1
 
@@ -511,20 +515,20 @@ def finish_experiment(root_path, src_path, dest_folder, save_files, save_files_p
     if not os.path.exists(root_path):
         os.makedirs(root_path, exist_ok=True)
     numbered_dest_folder = get_folder_with_numbering(root_path, dest_folder+'_')
-    dest_path = root_path + '/' + numbered_dest_folder              # results/domain/experiment_problem_num
+    dest_path = os.path.join(root_path, numbered_dest_folder)      # results/domain/experiment_problem_num
     if not os.path.exists(dest_path):
         os.makedirs(dest_path, exist_ok=True)
 
     remove_files(files = tmp_files, verbose = False)
     copy_files(save_files, src_path, dest_path, False)
     for file_pattern in save_files_pattern:
-        copy_files(glob.glob(src_path+'/'+file_pattern), '', dest_path, False)
+        copy_files(glob.glob(os.path.join(src_path, file_pattern)), '', dest_path, False)
     for file in template_files_:
         if '.cfg' in file:
             copy_files([file], src_path, dest_path)
             break
     if desc:
-        f = open(root_path + '/' + summary_file, 'a+')
+        f = open(os.path.join(root_path, summary_file), 'a+')
         f.write('Folder: ' + dest_path+'\n     '+desc+'\n')
         f.close()
     if working_path != mbrrl_path:
@@ -732,7 +736,7 @@ def modify_logger_conf(filename, logfilename):
     source = open(filename, 'r')
     for line in source:
         if line.find(PHRASE.strip()) > 0:
-            line = PHRASE+ "\"" + '/' + logfilename + "\"\n"
+            line = PHRASE+ "\"" + os.sep + logfilename + "\"\n"        # TODO
         destination.write(line)
     # close files and overwrite original .cfg file
     source.close()
@@ -825,7 +829,7 @@ def get_cmd_for_algo(**kwargs):
     cmd_keys = list(cmd_algo_args.keys())
     cmd_keys.sort()
     for key in cmd_keys:
-        if key is not 'seed':
+        if key != 'seed':
             cmdline += get_flag_value(def_algo_args, cmd_algo_args, key)
     return cmdline + ']"'
 
@@ -891,6 +895,14 @@ def at_least_one_common_element(list1, list2):
     return False
 
 
+def get_filename(file_path):
+    if '/' in file_path:
+        return file_path[file_path.rfind('/')+1:]
+    elif '\\' in file_path:
+        return file_path[file_path.rfind('\\')+1:]
+
+
+
 # -----------------------------
 # -----------------------------
 # -----------------------------
@@ -907,11 +919,11 @@ def clone_folders(folders, src_path, dest_path):
     if not os.path.isdir(dest_path):
         os.makedirs(dest_path, exist_ok=True)
     for folder in folders:
-        if not os.path.isdir(dest_path+'/'+folder):
-            os.makedirs(dest_path+'/'+folder, exist_ok=True)
-        if os.path.isdir(src_path+'/'+folder):
-            files = [f for f in os.listdir(src_path+'/'+folder) if os.path.isfile(os.path.join(src_path+'/'+folder, f) )]
-            copy_files(files, src_path+'/'+folder, dest_path+'/'+folder)
+        if not os.path.isdir(os.path.join(dest_path, folder)):
+            os.makedirs(os.path.join(dest_path, folder), exist_ok=True)
+        if os.path.isdir(os.path.join(src_path, folder)):
+            files = [f for f in os.listdir(os.path.join(src_path, folder)) if os.path.isfile(os.path.join(src_path, folder, f) )]
+            copy_files(files, os.path.join(src_path, folder), os.path.join(dest_path, folder))
 
 
 def move_folders(folders, src_path, dest_path):
@@ -920,8 +932,8 @@ def move_folders(folders, src_path, dest_path):
     if not os.path.isdir(dest_path):
         os.makedirs(dest_path, exist_ok=True)
     for folder in folders:
-        if os.path.isdir(src_path+'/'+folder):
-            shutil.move(src_path+'/'+folder, dest_path)
+        if os.path.isdir(os.path.join(src_path, folder)):
+            shutil.move(os.path.join(src_path, folder), dest_path)
 
 
 def copy_files(files, src_path, dest_path, verbose = True):
@@ -929,13 +941,13 @@ def copy_files(files, src_path, dest_path, verbose = True):
         files = [files]
     for a_file in files:
         try:
-            shutil.copy2(src_path + '/' + a_file, dest_path)
+            shutil.copy2(os.path.join(src_path, a_file), dest_path)
         except:
             try:
                 shutil.copy2(a_file, dest_path)
             except:
                 if verbose:
-                    print("Warning: Couldn't copy " + src_path + '/' + a_file)
+                    print("Warning: Couldn't copy " + os.path.join(src_path, a_file))
 
 
 # create empty files
@@ -943,7 +955,7 @@ def create_files(files, path):
     if not isinstance(files, list):
         files = [files]
     for a_file in files:
-        open(path + '/' + a_file, 'w').close()
+        open(os.path.join(path, a_file), 'w').close()
 
 
 def move_files(files, src_path, dest_path, verbose = True):
@@ -951,7 +963,7 @@ def move_files(files, src_path, dest_path, verbose = True):
         files = [files]
     for a_file in files:
         try:
-            shutil.move(src_path + '/' + a_file, dest_path)
+            shutil.move(os.path.join(src_path, a_file), dest_path)
         except:
             try:
                 shutil.move(a_file, dest_path)
@@ -965,7 +977,7 @@ def remove_files(files, path = '', verbose = True):
         files = [files]
     for a_file in files:
         try:
-            os.remove(path + '/' + a_file)
+            os.remove(os.path.join(path, a_file))
         except:
             if verbose:
                 print("Warning: Couldn't remove " + a_file)
@@ -988,7 +1000,7 @@ def get_files_from_folder(folder, filename):
     subfolders = os.listdir(folder)
     # print(subfolders)
     for subfolder in subfolders:
-        subfolder = folder+'/'+subfolder
+        subfolder = os.path.join(folder, subfolder)
         if os.path.isdir(subfolder):
             if os.path.isfile( os.path.join(folder, subfolder, filename) ):
                 files.append(os.path.join(folder, subfolder, filename))

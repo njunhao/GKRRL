@@ -135,11 +135,11 @@ def parse_ace_results(logfile, verbose = False):
     # ACE_results is list of (episode, reward, avg num of actions)
     ACE_results, runtime = parser_ace_prolog.parse_results(logfile, verbose)
     analysis = aysT.Analysis(logfile)
-    analysis.set_attribute('logfolder', logfile[:logfile.rfind('/')])
+    analysis.set_attribute('logfolder', logfile[:logfile.rfind(os.sep)])
     analysis.set_attribute('domain', 'blocksworld_mdp')
     rpg_instance = ''
     try:
-        rpg_instance = '_' + str(int(analysis.get_attribute('logfolder')[0][analysis.get_attribute('logfolder')[0].rfind('/')+1:])-1)
+        rpg_instance = '_' + str(int(common_utils.get_filename(analysis.get_attribute('logfolder')[0]))-1)
     except:
         pass
     # algorithm and problem instance depends on directory path
@@ -167,7 +167,7 @@ def parse_ace_results(logfile, verbose = False):
     for episode, reward, avg_num_of_actions in ACE_results:
         rewards_for_episode = [0.0]*num_steps
         if avg_num_of_actions > 0:
-            rewards_for_episode[int(avg_num_of_actions)-1] = reward
+            rewards_for_episode[int(avg_num_of_actions)-1] = reward                 # TODO: reward should not be at last time step, do not plot over time steps, only over episodes
         rewards_received.append(rewards_for_episode)
         if reward > 0:
             terminal_states_per_round.append(1)
@@ -258,14 +258,7 @@ def parse_mbrrl_results(logfile, verbose = False):
                 analysis.set_attribute('parser', 'NoPrune')
             else:
                 analysis.set_attribute('parser', 'Prune')
-            if value.find('/media/alvin/') != -1:
-                analysis.set_attribute('computation_hardware', 'laptop')
-            elif value.find('/home/helmi/') != -1 or value.find('/home/alvin/') != -1:
-                analysis.set_attribute('computation_hardware', 'nessie')
-            elif value.find('/home/nalvin/') != -1:
-                analysis.set_attribute('computation_hardware', 'robotarium')
-            else:
-                analysis.set_attribute('computation_hardware', 'unknown')
+            analysis.set_attribute('computation_hardware', 'unknown')
         elif msg_type == MSG_TYPE.INITIAL_DOMAIN.value:
             value = line[line.find(": ")+2:].strip().lower()
             analysis.set_attribute('initial_domain_file', value)                                        # initial_domain_file is unused variable

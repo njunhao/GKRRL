@@ -423,7 +423,7 @@ def check_settings(**kwargs):
                 if kwargs['problem'].count('inst') == 1:
                     qvalue_filename = kwargs.get('import_qvalue', None)
                     if qvalue_filename is None:
-                        qvalue_filename = exp_utils.impt_paths['features_path'] + '/' + kwargs['problem'].strip() + '_features.txt'
+                        qvalue_filename = os.path.join(exp_utils.impt_paths['features_path'], kwargs['problem'].strip()+'_features.txt')
                         if os.path.exists(qvalue_filename):
                             kwargs['import_qvalue'] = qvalue_filename
                         else:
@@ -446,20 +446,20 @@ def set_generated_files(**kwargs):
     else:
         kwargs['generated_files'] = kwargs['generated_files'] + [exp_utils.generated_files['opennn'][0]]
     if kwargs.get('import_qvalue', None):
-        kwargs['import_qvalue'] = kwargs['log_path']+'/'+kwargs['import_qvalue']
+        kwargs['import_qvalue'] = os.path.join(kwargs['log_path'], kwargs['import_qvalue'])
     if kwargs.get('export_qvalue', None):
         kwargs['generated_files_pattern'].append(kwargs['export_qvalue'][:kwargs['export_qvalue'].find('.')]+'*')
-        kwargs['export_qvalue'] = kwargs['log_path']+'/'+kwargs['export_qvalue']
+        kwargs['export_qvalue'] = os.path.join(kwargs['log_path'], kwargs['export_qvalue'])
     if kwargs.get('import_intrinsic_reward', None):
-        kwargs['import_intrinsic_reward'] = kwargs['log_path']+'/'+kwargs['import_intrinsic_reward']
+        kwargs['import_intrinsic_reward'] = os.path.join(kwargs['log_path'], kwargs['import_intrinsic_reward'])
     if kwargs.get('export_intrinsic_reward', None):
         kwargs['generated_files_pattern'].append(kwargs['export_intrinsic_reward'][:kwargs['export_intrinsic_reward'].find('.')]+'*')
-        kwargs['export_intrinsic_reward'] = kwargs['log_path']+'/'+kwargs['export_intrinsic_reward']
+        kwargs['export_intrinsic_reward'] = os.path.join(kwargs['log_path'], kwargs['export_intrinsic_reward'])
     if kwargs.get('import_policy', None):
-        kwargs['import_policy'] = kwargs['log_path']+'/'+kwargs['import_policy']
+        kwargs['import_policy'] = os.path.join(kwargs['log_path'], kwargs['import_policy'])
     if kwargs.get('export_policy', None):
         kwargs['generated_files'].append(kwargs['export_policy'])
-        kwargs['export_policy'] = kwargs['log_path']+'/'+kwargs['export_policy']
+        kwargs['export_policy'] = os.path.join(kwargs['log_path'], kwargs['export_policy'])
     if kwargs.get('tabu_file', None):
         kwargs['generated_files'].append(kwargs['tabu_file'])
         # kwargs['generated_files'].append(kwargs['tabu_file'][:kwargs['tabu_file'].rfind('.')]+'_generalized'+kwargs['tabu_file'][kwargs['tabu_file'].rfind('.'):])
@@ -700,7 +700,7 @@ if __name__ == "__main__":
             kwargs['verbose_msg'] = []
             kwargs['bin_copy'] = binary_path+'-'+str(kwargs['simulator_port'])
             if kwargs.get('timed_constraints', None):
-                kwargs['timed_constraints'] = kwargs['timed_constraints']+'/timed_constraints_'+problem[1]+'.txt'
+                kwargs['timed_constraints'] = os.path.join(kwargs['timed_constraints'], 'timed_constraints_'+problem[1]+'.txt')
             use_random_problem = False
 
             if do_once_only:
@@ -721,7 +721,7 @@ if __name__ == "__main__":
                     os.makedirs(kwargs['log_path'], exist_ok=True)
                 if not os.path.exists(kwargs['actual_log_path']):
                     os.makedirs(kwargs['actual_log_path'], exist_ok=True)
-                shutil.copy2(kwargs['module_name'], kwargs['actual_log_path']+'/../'+kwargs['module_name'])
+                shutil.copy2(kwargs['module_name'], os.path.join(kwargs['actual_log_path'], '..', kwargs['module_name']))
 
             if isinstance(problem, str):            # use default inst defined in .cfg
                 if exp_settings.num_random_inst > 0:
@@ -755,7 +755,7 @@ if __name__ == "__main__":
             # set the initial domain which will be used by planner (handled in .cpp)
             # the true domain .rddl is still copied to the working folder for rddlsim
             if initial_domain != 'true' and initial_domain:
-                if '/' not in initial_domain:                                                                                      # not a path
+                if os.sep not in initial_domain:                                                                                      # not a path
                     kwargs['initial_domain'] = domains_utils.lsof_domains.getDomain(kwargs['domain'], initial_domain)
                     if kwargs['initial_domain'] is None:
                         exp_utils.print_msg(kwargs['verbose_msg'], 'ERROR: Domain ' + kwargs['domain'] + ' does not have ' + initial_domain + ' domain specified in domains_utils.py')
@@ -842,7 +842,7 @@ if __name__ == "__main__":
                 filename = kwargs['tabu_file'].replace('*', kwargs.get('domain', ''))
                 if os.path.isfile(filename):
                     kwargs['imported_files'].append(filename)                                                   # file will be copied to logfolder
-                    kwargs['tabu_file'] = filename[filename.rfind('/')+1:]                                      # overwrite config to use copied file at logfolder
+                    kwargs['tabu_file'] = exp_utils.get_filename(filename)                                      # overwrite config to use copied file at logfolder
                 # else:
                 #     generalised_tabu_file = kwargs['tabu_file'][:kwargs['tabu_file'].rfind('.')]+'_generalized'+kwargs['tabu_file'][kwargs['tabu_file'].rfind('.'):]
                 #     if os.path.isfile(generalised_tabu_file):
@@ -852,7 +852,7 @@ if __name__ == "__main__":
                 filename = kwargs['import_transition_file'].replace('*', kwargs.get('domain', ''))
                 if os.path.isfile(filename):
                     kwargs['imported_files'].append(filename)                                                   # file will be copied to logfolder
-                    kwargs['import_transition_file'] = filename[filename.rfind('/')+1:]                         # overwrite config to use copied file at logfolder
+                    kwargs['import_transition_file'] = exp_utils.get_filename(filename)                         # overwrite config to use copied file at logfolder
             
             if not import_rddl_filenames and kwargs.get('import_rddl_file', None):                              # if using import_rddl_filenames (import a different file for each run)
                 if ' ' in kwargs['import_rddl_file']:
@@ -862,7 +862,7 @@ if __name__ == "__main__":
                     for file in kwargs['import_rddl_file']:
                         if os.path.isfile(file):
                             # file may have same filename but different paths, so need to rename them since they will be copied to the same folder
-                            filename = file[file.rfind('/')+1:]
+                            filename = exp_utils.get_filename(file)
                             filename = filename[: filename.rfind('.')] + '_' + str(len(files)) + filename[filename.rfind('.') :]
                             files.append(filename)
                             kwargs['imported_files'].append((file, filename))                                   # (file to be copied, new filename)
@@ -870,7 +870,7 @@ if __name__ == "__main__":
                 else:
                     if os.path.isfile(kwargs['import_rddl_file']):
                         kwargs['imported_files'].append(kwargs['import_rddl_file'])
-                        kwargs['import_rddl_file'] = kwargs['import_rddl_file'][kwargs['import_rddl_file'].rfind('/')+1:]
+                        kwargs['import_rddl_file'] = exp_utils.get_filename(kwargs['import_rddl_file'])
             
             if kwargs.get('import_qvalue', None):
                 # if kwargs.get('lfa_use_non_fluents', 0) > 0:
@@ -893,17 +893,17 @@ if __name__ == "__main__":
                         kwargs['imported_files'].append(intrinsic_reward_filename)
 
                     # overwrite config to use copied file at logfolder
-                    kwargs['import_qvalue'] = filename[filename.rfind('/')+1:]
+                    kwargs['import_qvalue'] = exp_utils.get_filename(filename)
 
             if kwargs.get('import_intrinsic_reward', None):
                 if os.path.isfile(kwargs['import_intrinsic_reward']):
                     kwargs['imported_files'].append(kwargs['import_intrinsic_reward'])                          # file will be copied to logfolder
-                    kwargs['import_intrinsic_reward'] = kwargs['import_intrinsic_reward'][kwargs['import_intrinsic_reward'].rfind('/')+1:]    # overwrite config to use copied file at logfolder
+                    kwargs['import_intrinsic_reward'] = exp_utils.get_filename(kwargs['import_intrinsic_reward'])    # overwrite config to use copied file at logfolder
 
             if kwargs.get('timed_constraints', None):
                 if os.path.isfile(kwargs['timed_constraints']):
                     kwargs['imported_files'].append(kwargs['timed_constraints'])
-                    kwargs['timed_constraints'] = kwargs['timed_constraints'][kwargs['timed_constraints'].rfind('/')+1:]
+                    kwargs['timed_constraints'] = exp_utils.get_filename(kwargs['timed_constraints'])
             
             kwargs = set_generated_files(**kwargs)                                                              # set the files to be copied after experiment is completed
             original_size = len(kwargs['imported_files'])
@@ -980,7 +980,7 @@ if __name__ == "__main__":
                         files = []
                         for file in import_rddl_filenames[rep_count]: 
                             # file may have same filename but different paths, so need to rename them since they will be copied to the same folder
-                            filename = file[file.rfind('/')+1:]
+                            filename = exp_utils.get_filename(file)
                             filename = filename[: filename.rfind('.')] + '_' + str(len(files)) + filename[filename.rfind('.') :]
                             files.append(filename)
                             kwargs['imported_files'].append((file, filename))                                   # (file to be copied, new filename)
@@ -1015,7 +1015,7 @@ if __name__ == "__main__":
                 if rep_count == 0:
                     short_desc, _ = exp_utils.get_summary_of_experiment(**kwargs)
                     if short_desc:
-                        f = open(exp_utils.mbrrl_path + '/' + exp_utils.summary_file, 'a+')
+                        f = open(os.path.join(exp_utils.mbrrl_path, exp_utils.summary_file), 'a+')
                         f.write(short_desc+'\n')
                         f.close()
 

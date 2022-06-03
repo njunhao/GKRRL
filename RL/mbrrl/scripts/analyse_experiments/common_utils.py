@@ -153,3 +153,11 @@ def get_subfolders(folder, nested = None, keyphrase = ''):
             else:
                 subsubfolders = subsubfolders + get_subfolders(subfolder, nested-1)
     return subfolders + subsubfolders
+
+
+
+def get_filename(file_path):
+    if '/' in file_path:
+        return file_path[file_path.rfind('/')+1:]
+    elif '\\' in file_path:
+        return file_path[file_path.rfind('\\')+1:]

@@ -131,144 +131,144 @@ class Domains:
 lsof_domains = Domains()
 lsof_domains.add(Domain(
                     **{'name': 'blocksworld',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/ippc_rpg',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_rpg'),
                        'approx': None,
                        'empty': None}))
 lsof_domains.add(Domain(
                     **{'name': 'tiago_hri',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/tiago_hri_mdp_approx.rddl',
-                       'latent': exp_utils.mbrrl_path + '/domains/robots_incomplete/tiago_hri_mdp_latent.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'tiago_hri_mdp_approx.rddl'),
+                       'latent': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'tiago_hri_mdp_latent.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'taxi',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg')}))
 lsof_domains.add(Domain(
                     **{'name': 'grid_survey',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots')}))
 lsof_domains.add(Domain(
                     **{'name': 'robot_inspection',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'deterministic': exp_utils.mbrrl_path + '/domains/robots_incomplete/robot_inspection_mdp_deterministic.rddl',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/robot_inspection_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/robot_inspection_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'deterministic': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'robot_inspection_mdp_deterministic.rddl'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'robot_inspection_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'robot_inspection_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'recon2',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'deterministic': exp_utils.mbrrl_path + '/domains/robots_incomplete/recon2_mdp_deterministic.rddl',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/recon2_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/recon2_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'deterministic': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'recon2_mdp_deterministic.rddl'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'recon2_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'recon2_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'orca_inspection',
-                       'folder': exp_utils.mbrrl_path + '/domains/orca/generated',
-                       'deterministic': exp_utils.mbrrl_path + '/domains/robots_incomplete/orca_inspection_mdp_deterministic.rddl',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/orca_inspection_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/orca_inspection_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'orca', 'generated'),
+                       'deterministic': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'orca_inspection_mdp_deterministic.rddl'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'orca_inspection_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'orca_inspection_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'husky_inspection',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'deterministic': exp_utils.mbrrl_path + '/domains/robots_incomplete/husky_inspection_mdp_deterministic.rddl',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/husky_inspection_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/husky_inspection_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'deterministic': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'husky_inspection_mdp_deterministic.rddl'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'husky_inspection_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'husky_inspection_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'turtlebot',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'turtlebot_goal',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_goal_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_goal_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_goal_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_goal_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'turtlebot_survey',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'deterministic': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_survey_mdp_deterministic.rddl',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_survey_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/turtlebot_survey_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'deterministic': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_survey_mdp_deterministic.rddl'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_survey_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'turtlebot_survey_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'tiago',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/tiago_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/tiago_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'tiago_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'tiago_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'tiago_fetch',
-                       'folder': exp_utils.mbrrl_path + '/domains/robots',
-                       'rpg_folder': exp_utils.mbrrl_path + '/domains/robots_rpg',
-                       'approx': exp_utils.mbrrl_path + '/domains/robots_incomplete/tiago_fetch_mdp_approx.rddl',
-                       'empty': exp_utils.mbrrl_path + '/domains/robots_incomplete/tiago_fetch_mdp_empty.rddl'}))
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots'),
+                       'rpg_folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_rpg'),
+                       'approx': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'tiago_fetch_mdp_approx.rddl'),
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'robots_incomplete', 'tiago_fetch_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'triangle_tireworld',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/triangle_tireworld_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'triangle_tireworld_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'crossing_traffic',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/crossing_traffic_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'crossing_traffic_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'elevators',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/elevators_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'elevators_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'game_of_life',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/game_of_life_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'game_of_life_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'navigation',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/navigation_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'navigation_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'academic_advising',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/academic_advising_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'academic_advising_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'wildfire',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/wildfire_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'wildfire_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'recon',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/recon_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'recon_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'skill_teaching',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/skill_teaching_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'skill_teaching_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'tamarisk',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/tamarisk_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'tamarisk_mdp_empty.rddl')}))
 lsof_domains.add(Domain(
                     **{'name': 'sysadmin',
-                       'folder': exp_utils.mbrrl_path + '/domains/ippc',
+                       'folder': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc'),
                        'rpg_folder': None,
                        'approx': None,
-                       'empty': exp_utils.mbrrl_path + '/domains/ippc_incomplete/sysadmin_mdp_empty.rddl'}))
+                       'empty': os.path.join(exp_utils.mbrrl_path, 'domains', 'ippc_incomplete', 'sysadmin_mdp_empty.rddl')}))
